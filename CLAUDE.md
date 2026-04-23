@@ -1,18 +1,35 @@
 # CLAUDE.md — NecaTech Boilerplate
 
+## Session Startup — Boilerplate Detection
+
+**Au démarrage de chaque session**, vérifie si ce projet est encore un boilerplate non initialisé :
+
+- Le nom du repo distant (`git remote get-url origin`) contient encore `necatech-boilerplate`, ou
+- Aucun remote n'est configuré (`git remote` retourne vide).
+
+Si l'une de ces conditions est vraie, **et que la demande de l'utilisateur ne concerne pas une modification ou amélioration du boilerplate lui-même**, dis à l'utilisateur :
+
+> Ce projet est encore configuré en tant que boilerplate. Lance `/new-project` pour l'initialiser, et renseigne l'URL de ton dépôt distant quand il te le demande.
+
+Ne continue pas avec d'autres tâches tant que l'utilisateur n'a pas confirmé ou explicitement ignoré cette étape.
+
+Si en revanche l'utilisateur travaille **sur le boilerplate lui-même** (ajout de fonctionnalités, corrections, améliorations du template), ignore ce check et procède normalement.
+
+---
+
 ## Tech Stack
 
-| Layer | Technology |
-|---|---|
-| Framework | Next.js 16 (App Router) |
-| Language | TypeScript 5 (strict mode) |
-| Styling | Tailwind CSS 4 |
-| ORM | Drizzle ORM |
-| Auth | Better Auth 1.x |
-| Validation | Zod 4 |
-| Database | PostgreSQL via Neon (`@neondatabase/serverless`) |
-| Deployment | Vercel (Fluid Compute, not Edge Functions) |
-| Package manager | pnpm |
+| Layer           | Technology                                       |
+| --------------- | ------------------------------------------------ |
+| Framework       | Next.js 16 (App Router)                          |
+| Language        | TypeScript 5 (strict mode)                       |
+| Styling         | Tailwind CSS 4                                   |
+| ORM             | Drizzle ORM                                      |
+| Auth            | Better Auth 1.x                                  |
+| Validation      | Zod 4                                            |
+| Database        | PostgreSQL via Neon (`@neondatabase/serverless`) |
+| Deployment      | Vercel (Fluid Compute, not Edge Functions)       |
+| Package manager | pnpm                                             |
 
 ## Directory Structure
 
@@ -48,7 +65,6 @@ src/
 └── types/                      # Global shared TypeScript types
 scripts/
 ├── seed.ts                     # Database seeding
-└── reset.ts                    # Database reset (dev only)
 ```
 
 ## Data Flow
@@ -67,20 +83,21 @@ Each layer has a single responsibility:
 
 ## Naming Conventions
 
-| Artifact | Convention | Example |
-|---|---|---|
-| Files | `kebab-case` | `user-profile.ts` |
-| React components | `PascalCase` | `UserCard.tsx` |
-| Functions/variables | `camelCase` | `getUserById` |
-| Drizzle tables | `camelCase` (JS), `snake_case` (SQL) | `usersTable` → `users` |
-| Zod schemas | `camelCase` + `Schema` suffix | `createUserSchema` |
-| TypeScript types | `PascalCase` | `UserProfile` |
-| Server Actions files | always `actions.ts` per feature | `features/auth/actions.ts` |
-| Environment variables | `SCREAMING_SNAKE_CASE` | `DATABASE_URL` |
+| Artifact              | Convention                           | Example                    |
+| --------------------- | ------------------------------------ | -------------------------- |
+| Files                 | `kebab-case`                         | `user-profile.ts`          |
+| React components      | `PascalCase`                         | `UserCard.tsx`             |
+| Functions/variables   | `camelCase`                          | `getUserById`              |
+| Drizzle tables        | `camelCase` (JS), `snake_case` (SQL) | `usersTable` → `users`     |
+| Zod schemas           | `camelCase` + `Schema` suffix        | `createUserSchema`         |
+| TypeScript types      | `PascalCase`                         | `UserProfile`              |
+| Server Actions files  | always `actions.ts` per feature      | `features/auth/actions.ts` |
+| Environment variables | `SCREAMING_SNAKE_CASE`               | `DATABASE_URL`             |
 
 ## Strict Rules
 
 ### Architecture
+
 - **Never skip layers.** A `page.tsx` must not call a repository directly. A service must not be called from a component.
 - **`lib/db/index.ts` is only imported inside `repository.ts` files** and migration scripts.
 - **`server-only`** must be imported at the top of `lib/auth/index.ts` and any file that must never reach the browser bundle.
@@ -89,44 +106,49 @@ Each layer has a single responsibility:
 - **`components/ui/` and `components/layout/` are domain-agnostic.** If a component needs feature-specific props or imports, it belongs in `features/<feature>/components/`.
 
 ### TypeScript
+
 - Strict mode is enabled — no `any`, no `as unknown as X` casts without a comment explaining why.
 - All Server Actions must have explicit return types.
 - Prefer `type` over `interface` for plain data shapes; use `interface` only when extension is intentional.
 
 ### Database
+
 - All schema changes go through `drizzle-kit generate` + `drizzle-kit migrate`. Never write raw SQL migrations by hand.
 - Feature-level tables are defined in `features/<feature>/schema.ts` and re-exported from `src/lib/db/schema.ts`.
 - Never use `db.execute(sql\`...\`)` raw queries for CRUD — use the Drizzle query builder.
 
 ### Auth
+
 - Session checks in middleware use `getSessionCookie` (cookie-only, no DB round-trip).
 - Add protected routes to the `protectedRoutes` array in `src/middleware.ts`.
 - Never duplicate session validation logic outside of `middleware.ts` and `lib/auth/index.ts`.
 
 ### Styling
+
 - Tailwind CSS 4 — utility classes only, no custom CSS unless absolutely necessary.
 - No inline `style` props.
 - Dark mode and responsive variants must be handled via Tailwind modifiers, not JS conditionals.
 
 ### Environment Variables
+
 - All secrets live in `.env.local` (dev) and Vercel environment variables (prod).
 - `DATABASE_URL` is required at build and runtime.
 - Never hard-code credentials or fallback secrets in source files.
 
 ## Common Mistakes to Avoid
 
-| Mistake | Correct approach |
-|---|---|
-| Importing `lib/db` directly in a service or page | Import through the feature's `repository.ts` |
-| Writing business logic in `repository.ts` | Keep repositories as thin data-access wrappers |
-| Calling a service from a client component | Use a Server Action; never expose service functions to the browser |
-| Forgetting `"use server"` in `actions.ts` | Every `actions.ts` file must start with `"use server"` |
-| Forgetting `"use client"` in interactive components | Any component using hooks or browser APIs needs the directive |
+| Mistake                                                    | Correct approach                                                                                 |
+| ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| Importing `lib/db` directly in a service or page           | Import through the feature's `repository.ts`                                                     |
+| Writing business logic in `repository.ts`                  | Keep repositories as thin data-access wrappers                                                   |
+| Calling a service from a client component                  | Use a Server Action; never expose service functions to the browser                               |
+| Forgetting `"use server"` in `actions.ts`                  | Every `actions.ts` file must start with `"use server"`                                           |
+| Forgetting `"use client"` in interactive components        | Any component using hooks or browser APIs needs the directive                                    |
 | Sharing Zod schemas between server and client without care | Schemas in `lib/validations/` are safe to share; schemas that import server-only modules are not |
-| Adding a new table only to `lib/db/schema.ts` | Define it in the feature's `schema.ts` first, then re-export it from `lib/db/schema.ts` |
-| Using `console.log` in production code | Use a proper logger or remove before merging |
-| Mutating state inside a Server Action return | Return plain serializable objects (no class instances, no `Date` objects unless needed) |
-| Bypassing middleware for protected routes | Always add new protected paths to `protectedRoutes` in `middleware.ts` |
+| Adding a new table only to `lib/db/schema.ts`              | Define it in the feature's `schema.ts` first, then re-export it from `lib/db/schema.ts`          |
+| Using `console.log` in production code                     | Use a proper logger or remove before merging                                                     |
+| Mutating state inside a Server Action return               | Return plain serializable objects (no class instances, no `Date` objects unless needed)          |
+| Bypassing middleware for protected routes                  | Always add new protected paths to `protectedRoutes` in `middleware.ts`                           |
 
 ## Available Scripts
 
@@ -142,11 +164,11 @@ pnpm db:seed          # Run seed script
 
 ## Key Files
 
-| File | Purpose |
-|---|---|
-| `src/middleware.ts` | Route protection — edit `protectedRoutes` / `authRoutes` here |
-| `src/lib/auth/index.ts` | Better Auth server config (email/password enabled by default) |
-| `src/lib/auth/client.ts` | Better Auth browser client |
-| `src/lib/db/index.ts` | Drizzle + Neon client singleton |
-| `src/lib/db/schema.ts` | Central schema re-export |
-| `drizzle.config.ts` | Drizzle Kit config (schema path, migrations output, dialect) |
+| File                     | Purpose                                                       |
+| ------------------------ | ------------------------------------------------------------- |
+| `src/middleware.ts`      | Route protection — edit `protectedRoutes` / `authRoutes` here |
+| `src/lib/auth/index.ts`  | Better Auth server config (email/password enabled by default) |
+| `src/lib/auth/client.ts` | Better Auth browser client                                    |
+| `src/lib/db/index.ts`    | Drizzle + Neon client singleton                               |
+| `src/lib/db/schema.ts`   | Central schema re-export                                      |
+| `drizzle.config.ts`      | Drizzle Kit config (schema path, migrations output, dialect)  |
