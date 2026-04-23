@@ -14,18 +14,20 @@ Production-ready Next.js fullstack starter kit.
 
 ## Project Structure
 
+```
 src/
-├── app/ # Routing only
-├── components/ # Reusable UI
-│ ├── ui/ # Generic components
-│ └── layout/ # Header, footer, sidebar
-├── features/ # Feature-based modules
-├── lib/ # Shared technical layer
-│ ├── db/ # Drizzle + schema + migrations
-│ ├── auth/ # Better Auth
-│ └── validations/ # Shared Zod schemas
-├── hooks/ # Reusable React hooks
-└── types/ # Global types
+├── app/              # Routing only
+├── components/       # Reusable UI
+│   ├── ui/           # Generic components
+│   └── layout/       # Header, footer, sidebar
+├── features/         # Feature-based modules
+├── lib/              # Shared technical layer
+│   ├── db/           # Drizzle + schema + migrations
+│   ├── auth/         # Better Auth
+│   └── validations/  # Shared Zod schemas
+├── hooks/            # Reusable React hooks
+└── types/            # Global types
+```
 
 ## Getting Started
 
