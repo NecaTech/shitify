@@ -5,7 +5,8 @@ import { z } from "zod";
 import { displayNameSchema } from "@/lib/validations/common";
 import { requireSession } from "@/lib/auth/server";
 import { updateUserProfile } from "./service";
-import type { AuthResult, User } from "./types";
+import type { ActionResult } from "@/types/result";
+import type { User } from "./types";
 
 const updateProfileSchema = z.object({
   name: displayNameSchema,
@@ -13,7 +14,7 @@ const updateProfileSchema = z.object({
 
 export async function updateProfileAction(
   input: unknown,
-): Promise<AuthResult<User>> {
+): Promise<ActionResult<User>> {
   const session = await requireSession();
 
   const parsed = updateProfileSchema.safeParse(input);
