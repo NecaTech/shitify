@@ -2,6 +2,7 @@
 
 import { z } from "zod";
 import { getUserByEmail } from "./service";
+import { requireSession } from "@/lib/auth/server";
 import type { AuthResult, User } from "./types";
 
 const getUserByEmailSchema = z.object({
@@ -11,6 +12,8 @@ const getUserByEmailSchema = z.object({
 export async function getUserByEmailAction(
   input: unknown,
 ): Promise<AuthResult<User | null>> {
+  await requireSession();
+
   const parsed = getUserByEmailSchema.safeParse(input);
   if (!parsed.success) {
     return {
@@ -19,6 +22,10 @@ export async function getUserByEmailAction(
     };
   }
 
-  const user = await getUserByEmail(parsed.data.email);
-  return { success: true, data: user };
+  try {
+    const user = await getUserByEmail(parsed.data.email);
+    return { success: true, data: user };
+  } catch {
+    return { success: false, error: "Internal error" };
+  }
 }

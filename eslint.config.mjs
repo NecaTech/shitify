@@ -24,6 +24,8 @@ const eslintConfig = defineConfig([
         "error",
         { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
       ],
+      // Enforce logger usage (lib/logger.ts) over console in production code
+      "no-console": ["warn", { allow: ["warn", "error"] }],
     },
   },
   prettier,

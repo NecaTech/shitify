@@ -109,7 +109,7 @@ Each layer has a single responsibility:
 
 - **Never skip layers.** A `page.tsx` must not call a repository directly. A service must not be called from a component.
 - **`lib/db/index.ts` is only imported inside `repository.ts` files** and migration scripts.
-- **`server-only`** must be imported at the top of `lib/auth/index.ts`, `lib/db/index.ts`, `lib/logger.ts`, and any file that must never reach the browser bundle.
+- **`server-only`** must be imported at the top of `lib/auth/index.ts`, `lib/db/index.ts`, `lib/logger.ts`, `features/<feature>/schema.ts`, and any file that must never reach the browser bundle.
 - **`actions.ts` files must always validate input with Zod** before passing data to the service layer.
 - **No business logic in `app/`**. Pages fetch data via Server Actions or direct async calls to services; they do not contain conditionals, loops, or transformations beyond minimal display logic.
 - **`components/ui/` and `components/layout/` are domain-agnostic.** If a component needs feature-specific props or imports, it belongs in `features/<feature>/components/`.
@@ -138,23 +138,25 @@ Each layer has a single responsibility:
 ### Caching (Next 16)
 
 - Use `'use cache'` at the top of `repository.ts` read functions or Server Components that fetch data. This replaces `unstable_cache` (deprecated in Next 16).
-- Tag cached data with `cacheTag('entity-name')` so it can be invalidated selectively.
+- Tag cached data with `cacheTag('entity-name')` so it can be invalidated selectively. Use granular tags (`user:${id}`) for precision, broad tags (`users`) for bulk invalidation.
 - In mutating Server Actions, call `revalidateTag('entity-name')` after writes.
 - Do not use `unstable_cache` — it is deprecated in Next 16.
+- Import: `import { unstable_cacheTag as cacheTag } from "next/cache"` (the stable alias `cacheTag` is not yet available directly).
 
 ```ts
 // Example: repository.ts
 import { unstable_cacheTag as cacheTag } from "next/cache";
 
-export async function findAllPosts() {
+export async function findUserById(id: string): Promise<User | null> {
   "use cache";
-  cacheTag("posts");
-  return db.select().from(posts);
+  cacheTag(`user:${id}`);
+  const [row] = await db.select().from(user).where(eq(user.id, id)).limit(1);
+  return row ?? null;
 }
 
 // Example: actions.ts (after mutation)
 import { revalidateTag } from "next/cache";
-revalidateTag("posts");
+revalidateTag(`user:${id}`);
 ```
 
 ### Styling
@@ -174,6 +176,7 @@ revalidateTag("posts");
 - Import from `env` object: `import { env } from "@/lib/env"` — never `process.env.X` directly.
 - All secrets live in `.env.local` (dev) and Vercel environment variables (prod).
 - Never hard-code credentials or fallback secrets in source files.
+- **Exception légale :** `drizzle.config.ts` est un script CLI Node pur — `@t3-oss/env-nextjs` ne peut pas y être importé. L'accès `process.env.DATABASE_URL` dans ce seul fichier est intentionnel et documenté.
 
 ## Common Mistakes to Avoid
 
@@ -209,6 +212,8 @@ pnpm db:push          # Push schema directly (dev only)
 pnpm db:check         # Check for schema inconsistencies
 pnpm db:studio        # Open Drizzle Studio (DB GUI)
 pnpm db:seed          # Run seed script
+pnpm test             # Run Vitest tests
+pnpm test:watch       # Run Vitest in watch mode
 ```
 
 ## Key Files

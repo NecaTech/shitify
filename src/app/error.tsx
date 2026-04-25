@@ -1,6 +1,7 @@
 "use client";
 
 export default function Error({
+  error,
   reset,
 }: {
   error: Error & { digest?: string };
@@ -11,7 +12,9 @@ export default function Error({
       <div className="text-center">
         <h1 className="text-2xl font-semibold">Une erreur est survenue</h1>
         <p className="text-muted-foreground mt-2">
-          Quelque chose s&apos;est mal passé.
+          {error.digest
+            ? `Référence : ${error.digest}`
+            : "Quelque chose s'est mal passé."}
         </p>
         <button
           onClick={reset}
