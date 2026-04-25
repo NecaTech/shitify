@@ -1,31 +1,34 @@
 "use server";
 
+import { revalidateTag } from "next/cache";
 import { z } from "zod";
-import { getUserByEmail } from "./service";
+import { displayNameSchema } from "@/lib/validations/common";
 import { requireSession } from "@/lib/auth/server";
+import { updateUserProfile } from "./service";
 import type { AuthResult, User } from "./types";
 
-const getUserByEmailSchema = z.object({
-  email: z.string().email(),
+const updateProfileSchema = z.object({
+  name: displayNameSchema,
 });
 
-export async function getUserByEmailAction(
+export async function updateProfileAction(
   input: unknown,
-): Promise<AuthResult<User | null>> {
-  await requireSession();
+): Promise<AuthResult<User>> {
+  const session = await requireSession();
 
-  const parsed = getUserByEmailSchema.safeParse(input);
+  const parsed = updateProfileSchema.safeParse(input);
   if (!parsed.success) {
     return {
       success: false,
-      error: parsed.error.issues[0]?.message ?? "Invalid input",
+      error: parsed.error.issues[0]?.message ?? "Données invalides",
     };
   }
 
   try {
-    const user = await getUserByEmail(parsed.data.email);
-    return { success: true, data: user };
+    const updated = await updateUserProfile(session.user.id, parsed.data);
+    revalidateTag(`user:${session.user.id}`, "default");
+    return { success: true, data: updated };
   } catch {
-    return { success: false, error: "Internal error" };
+    return { success: false, error: "Erreur interne" };
   }
 }

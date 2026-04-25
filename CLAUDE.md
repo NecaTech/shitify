@@ -139,7 +139,7 @@ Each layer has a single responsibility:
 
 - Use `'use cache'` at the top of `repository.ts` read functions or Server Components that fetch data. This replaces `unstable_cache` (deprecated in Next 16).
 - Tag cached data with `cacheTag('entity-name')` so it can be invalidated selectively. Use granular tags (`user:${id}`) for precision, broad tags (`users`) for bulk invalidation.
-- In mutating Server Actions, call `revalidateTag('entity-name')` after writes.
+- In mutating Server Actions, call `revalidateTag('entity-name', 'default')` after writes. Next 16 requires a second `profile` argument (use `"default"` unless you've defined a custom `cacheLife` profile).
 - Do not use `unstable_cache` — it is deprecated in Next 16.
 - Import: `import { unstable_cacheTag as cacheTag } from "next/cache"` (the stable alias `cacheTag` is not yet available directly).
 
@@ -156,7 +156,7 @@ export async function findUserById(id: string): Promise<User | null> {
 
 // Example: actions.ts (after mutation)
 import { revalidateTag } from "next/cache";
-revalidateTag(`user:${id}`);
+revalidateTag(`user:${id}`, "default");
 ```
 
 ### Styling

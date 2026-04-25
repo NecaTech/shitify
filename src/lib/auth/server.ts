@@ -13,3 +13,11 @@ export async function requireSession() {
   if (!session) redirect("/login");
   return session;
 }
+
+/**
+ * Like requireSession() but returns null instead of redirecting.
+ * Use in public pages that optionally personalize for authenticated users.
+ */
+export async function getOptionalSession() {
+  return auth.api.getSession({ headers: await headers() });
+}
