@@ -33,5 +33,4 @@ Thumbs.db
 .vscode/
 .idea/
 
-# Drizzle
-src/lib/db/migrations/meta/
+# Drizzle — ne pas ignorer les migrations (à committer)
