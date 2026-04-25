@@ -1,10 +1,13 @@
 import "server-only";
 import { drizzle } from "drizzle-orm/neon-serverless";
-import { neonConfig, Pool } from "@neondatabase/serverless";
-import ws from "ws";
+import { Pool } from "@neondatabase/serverless";
+import * as schema from "./schema";
 
-neonConfig.webSocketConstructor = ws;
+const databaseUrl = process.env.DATABASE_URL;
+if (!databaseUrl) throw new Error("DATABASE_URL is not defined");
 
-const pool = new Pool({ connectionString: process.env.DATABASE_URL! });
+const globalForDb = globalThis as unknown as { pool?: Pool };
+const pool = globalForDb.pool ?? new Pool({ connectionString: databaseUrl });
+if (process.env.NODE_ENV !== "production") globalForDb.pool = pool;
 
-export const db = drizzle(pool);
+export const db = drizzle(pool, { schema });
