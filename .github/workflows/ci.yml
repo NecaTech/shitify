@@ -14,8 +14,8 @@ jobs:
       - uses: actions/checkout@v4
 
       - uses: pnpm/action-setup@v4
-        with:
-          version: 10
+        # Aucune clé "version" → l'action lit automatiquement la version déclarée dans package.json
+        # C'est la méthode recommandée par l'équipe pnpm en 2026
 
       - uses: actions/setup-node@v4
         with:
