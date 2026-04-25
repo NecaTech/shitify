@@ -1,8 +1,7 @@
 import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
-import type { UserConfig } from "vite";
 
-export default defineConfig(async (): Promise<UserConfig> => {
+export default defineConfig(async () => {
   const { default: tsconfigPaths } = await import("vite-tsconfig-paths");
 
   return {
