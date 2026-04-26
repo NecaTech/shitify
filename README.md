@@ -78,33 +78,38 @@ src/
 │   └── not-found.tsx           # 404 global
 ├── components/
 │   ├── ui/                     # Primitives UI génériques (shadcn/ui)
-│   └── layout/                 # Composants de shell (Navbar, Sidebar, Footer…)
+│   │   ├── button.tsx
+│   │   └── input.tsx
+│   └── layout/                 # Composants de shell (Navbar, Sidebar…) — vide, ajouter ici
 ├── features/                   # Un répertoire par domaine fonctionnel
-│   └── auth/                   # Implémentation de référence du pattern
+│   └── auth/                   # Implémentation de référence — dupliquer pour chaque feature
 │       ├── actions.ts          # Server Actions — point d'entrée depuis l'UI
 │       ├── service.ts          # Logique métier — orchestre les repositories
-│       ├── repository.ts       # Requêtes DB uniquement + cache
+│       ├── repository.ts       # Requêtes DB + cache tags
 │       ├── schema.ts           # Tables Drizzle de cette feature
 │       ├── types.ts            # Types TypeScript scoped
 │       └── components/         # Composants React spécifiques à la feature
-├── hooks/                      # React hooks réutilisables (client uniquement)
+├── hooks/                      # React hooks réutilisables (client uniquement) — vide, ajouter ici
 ├── lib/
 │   ├── auth/
 │   │   ├── index.ts            # Config Better Auth serveur (server-only)
 │   │   ├── client.ts           # Client Better Auth navigateur
-│   │   └── server.ts           # requireSession() — à utiliser dans les pages protégées
+│   │   └── server.ts           # requireSession() / getOptionalSession()
 │   ├── db/
-│   │   ├── index.ts            # Instance Drizzle (singleton)
+│   │   ├── index.ts            # Instance Drizzle singleton (NeonDatabase<typeof schema>)
 │   │   ├── auth-schema.ts      # Tables Better Auth (généré — ne pas éditer)
-│   │   ├── schema.ts           # Re-exports globaux du schéma
-│   │   └── migrations/         # Généré par drizzle-kit
+│   │   ├── schema.ts           # Re-exports centraux (ajouter: export * from "@/features/X/schema")
+│   │   └── migrations/         # Généré par drizzle-kit (lancer db:generate puis db:migrate)
 │   ├── env.ts                  # Variables d'env validées (@t3-oss/env-nextjs + Zod)
 │   ├── logger.ts               # Logger Pino (server-only)
-│   └── utils.ts                # Fonctions utilitaires pures
-├── proxy.ts                    # Protection des routes (cookies Better Auth)
-└── types/                      # Types TypeScript globaux partagés
+│   ├── validations/
+│   │   └── common.ts           # Schémas Zod partagés (email, password, displayName)
+│   └── utils.ts                # Fonctions utilitaires pures (cn())
+├── proxy.ts                    # Protection des routes (cookies Better Auth) — Next 16
+└── types/
+    └── result.ts               # ActionResult<T> — type de retour générique des Server Actions
 scripts/
-└── seed.ts                     # Seeding de la base de données
+└── seed.ts                     # Seeding de la base (no-op par défaut — à personnaliser)
 ```
 
 ## Flux de données
@@ -117,30 +122,37 @@ Chaque couche a une responsabilité unique. La feature `features/auth/` est l'im
 
 ## Scripts
 
-| Commande           | Description                             |
-| ------------------ | --------------------------------------- |
-| `pnpm dev`         | Serveur de développement                |
-| `pnpm build`       | Build production                        |
-| `pnpm typecheck`   | Vérification TypeScript (sans émission) |
-| `pnpm lint`        | ESLint                                  |
-| `pnpm lint:fix`    | ESLint avec auto-fix                    |
-| `pnpm format`      | Prettier                                |
-| `pnpm test`        | Tests Vitest                            |
-| `pnpm db:generate` | Générer les migrations Drizzle          |
-| `pnpm db:migrate`  | Appliquer les migrations                |
-| `pnpm db:push`     | Push direct du schéma (dev uniquement)  |
-| `pnpm db:studio`   | Interface Drizzle Studio                |
-| `pnpm db:seed`     | Seeder la base de données               |
+| Commande             | Description                             |
+| -------------------- | --------------------------------------- |
+| `pnpm dev`           | Serveur de développement                |
+| `pnpm build`         | Build production                        |
+| `pnpm typecheck`     | Vérification TypeScript (sans émission) |
+| `pnpm lint`          | ESLint                                  |
+| `pnpm lint:fix`      | ESLint avec auto-fix                    |
+| `pnpm format`        | Prettier                                |
+| `pnpm format:check`  | Vérification Prettier (CI)              |
+| `pnpm test`          | Tests Vitest                            |
+| `pnpm test:watch`    | Tests Vitest en mode watch              |
+| `pnpm test:coverage` | Tests avec rapport de couverture        |
+| `pnpm db:generate`   | Générer les migrations Drizzle          |
+| `pnpm db:migrate`    | Appliquer les migrations                |
+| `pnpm db:push`       | Push direct du schéma (dev uniquement)  |
+| `pnpm db:check`      | Vérifier la cohérence du schéma         |
+| `pnpm db:studio`     | Interface Drizzle Studio                |
+| `pnpm db:seed`       | Seeder la base de données               |
 
 ## Règles clés
 
-- **Jamais de `process.env.X` direct** — importer depuis `lib/env.ts`
+- **Jamais de `process.env.X` direct** — importer depuis `lib/env.ts` (exceptions documentées dans `CLAUDE.md`)
 - **Jamais de saut de couche** — `page.tsx` ne peut pas appeler un repository directement
 - **`requireSession()`** dans toutes les pages/actions protégées (ne pas se fier au proxy seul)
+- **Zod avant `requireSession()`** dans les Server Actions — valider l'input d'abord, authentifier ensuite
+- **`userTag(id)`** depuis `repository.ts` pour nommer les cache tags — cohérence lecture/écriture
 - **`'use cache'` + `cacheTag`** sur les fonctions read des repositories (Next 16)
-- **`server-only`** dans `lib/auth/index.ts`, `lib/db/index.ts`, `lib/logger.ts`
+- **`server-only`** dans `lib/auth/index.ts`, `lib/db/index.ts`, `lib/logger.ts`, `repository.ts`, `service.ts`
+- **Nouvelle feature** — créer `features/<nom>/` en s'inspirant de `features/auth/`, puis ajouter `export * from "@/features/<nom>/schema"` dans `lib/db/schema.ts`
 
-Voir `CLAUDE.md` pour les règles complètes.
+Voir `CLAUDE.md` pour les règles et conventions complètes.
 
 ## License
 
