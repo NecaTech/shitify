@@ -225,6 +225,26 @@ pnpm test:watch       # Run Vitest in watch mode
 
 ## Key Files
 
+## Intentionally Left Open — Configure Per Project
+
+These three areas are **not configured in the boilerplate** by design. They depend on project-specific decisions and should be implemented once per project, not pre-baked into the template.
+
+### PPR / Suspense boundaries
+
+`cacheComponents: true` is enabled (PPR active), but no `<Suspense>` boundaries exist yet. Add them where streaming makes sense for your specific pages — there is no universal answer. Start with `loading.tsx` per segment and wrap async data-fetching components in `<Suspense fallback={<Skeleton />}>`.
+
+### CSP with nonce
+
+`next.config.ts` has `script-src 'self' 'unsafe-inline'` which negates XSS protection. The correct fix requires generating a per-request nonce in `proxy.ts` and injecting it into Server Components via `headers()`. This is ~half a day of work and the approach depends on whether you use inline scripts (analytics, third-party widgets). Implement before first production deployment.
+
+### Tests
+
+Vitest is configured and ready (`pnpm test`, `pnpm test:coverage`). No tests are included because test scope depends entirely on the domain. Use `features/auth/` as the reference: write `repository.test.ts`, `service.test.ts`, and component tests in `features/<name>/`. Mock `@/lib/db` with `vi.mock` for unit tests; use a real test DB for integration tests.
+
+---
+
+## Key Files
+
 | File                        | Purpose                                                              |
 | --------------------------- | -------------------------------------------------------------------- |
 | `src/proxy.ts`              | Route protection — edit `protectedRoutes` / `authRoutes` here        |
