@@ -13,8 +13,8 @@ const eslintConfig = defineConfig([
     rules: {
       "react/no-unescaped-entities": "off",
       // Drizzle safety: prevent accidental delete/update without where clause
-      "drizzle/enforce-delete-with-where": "error",
-      "drizzle/enforce-update-with-where": "error",
+      "drizzle/enforce-delete-with-where": ["error", { drizzleObjectName: ["db"] }],
+      "drizzle/enforce-update-with-where": ["error", { drizzleObjectName: ["db"] }],
       // TypeScript import hygiene
       "@typescript-eslint/consistent-type-imports": [
         "error",
@@ -26,6 +26,19 @@ const eslintConfig = defineConfig([
       ],
       // Enforce logger usage (lib/logger.ts) over console in production code
       "no-console": ["warn", { allow: ["warn", "error"] }],
+    },
+  },
+  // no-floating-promises requires type information — scoped to src/ only
+  {
+    files: ["src/**/*.{ts,tsx}"],
+    languageOptions: {
+      parserOptions: {
+        project: true,
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+    rules: {
+      "@typescript-eslint/no-floating-promises": "error",
     },
   },
   prettier,

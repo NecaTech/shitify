@@ -5,9 +5,11 @@ import { db } from "@/lib/db";
 import { user } from "./schema";
 import type { User } from "./types";
 
+export const userTag = (id: string) => `user:${id}`;
+
 export async function findUserById(id: string): Promise<User | null> {
   "use cache";
-  cacheTag(`user:${id}`);
+  cacheTag(userTag(id));
   const [row] = await db.select().from(user).where(eq(user.id, id)).limit(1);
   return row ?? null;
 }

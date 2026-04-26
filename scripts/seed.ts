@@ -8,7 +8,6 @@
  * Pré-requis : DATABASE_URL défini dans .env.local
  * Commande   : pnpm db:seed
  */
-import "dotenv/config";
 import { Pool } from "@neondatabase/serverless";
 // import { drizzle } from "drizzle-orm/neon-serverless";
 // import * as schema from "../src/lib/db/schema";
@@ -20,10 +19,12 @@ const pool = new Pool({ connectionString: databaseUrl });
 // const db = drizzle(pool, { schema }); // décommenter quand des tables existent
 
 async function main() {
-  // Exemple : insérer des données initiales
+  // Aucun seed par défaut — personnaliser selon le domaine du projet.
+  // Exemple :
   // await db.insert(schema.users).values([
   //   { id: crypto.randomUUID(), name: "Admin", email: "admin@example.com" },
   // ]);
+  console.warn("[seed] no-op — boilerplate seed not yet customized");
   await pool.end();
 }
 

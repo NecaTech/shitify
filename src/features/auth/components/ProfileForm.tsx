@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { updateProfileAction } from "../actions";
 
 interface ProfileFormProps {
@@ -11,6 +12,7 @@ interface ProfileFormProps {
 export function ProfileForm({ initialName }: ProfileFormProps) {
   const [name, setName] = useState(initialName);
   const [message, setMessage] = useState<string | null>(null);
+  const [isSuccess, setIsSuccess] = useState(false);
   const [isPending, startTransition] = useTransition();
 
   function handleSubmit(e: React.FormEvent) {
@@ -20,8 +22,10 @@ export function ProfileForm({ initialName }: ProfileFormProps) {
     startTransition(async () => {
       const result = await updateProfileAction({ name });
       if (result.success) {
+        setIsSuccess(true);
         setMessage("Profil mis à jour.");
       } else {
+        setIsSuccess(false);
         setMessage(result.error);
       }
     });
@@ -33,18 +37,23 @@ export function ProfileForm({ initialName }: ProfileFormProps) {
         <label htmlFor="name" className="text-sm font-medium">
           Nom d&apos;affichage
         </label>
-        <input
+        <Input
           id="name"
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="border-input bg-background rounded-md border px-3 py-2 text-sm focus:ring-2 focus:outline-none"
           disabled={isPending}
           required
         />
       </div>
 
-      {message && <p className="text-muted-foreground text-sm">{message}</p>}
+      {message && (
+        <p
+          className={`text-sm ${isSuccess ? "text-green-600 dark:text-green-400" : "text-destructive"}`}
+        >
+          {message}
+        </p>
+      )}
 
       <Button type="submit" disabled={isPending}>
         {isPending ? "Enregistrement…" : "Enregistrer"}

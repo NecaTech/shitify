@@ -176,7 +176,10 @@ revalidateTag(`user:${id}`, "default");
 - Import from `env` object: `import { env } from "@/lib/env"` — never `process.env.X` directly.
 - All secrets live in `.env.local` (dev) and Vercel environment variables (prod).
 - Never hard-code credentials or fallback secrets in source files.
-- **Exception légale :** `drizzle.config.ts` est un script CLI Node pur — `@t3-oss/env-nextjs` ne peut pas y être importé. L'accès `process.env.DATABASE_URL` dans ce seul fichier est intentionnel et documenté.
+- **Exception légale :** `drizzle.config.ts` et `scripts/seed.ts` sont des scripts CLI Node purs — `@t3-oss/env-nextjs` ne peut pas y être importé. L'accès `process.env.DATABASE_URL` dans ces fichiers est intentionnel et documenté.
+- **Exception légale :** `src/lib/db/index.ts` utilise `process.env.NODE_ENV` directement — `@t3-oss/env-nextjs` ne valide pas `NODE_ENV` (TypeScript le type nativement comme union littérale). C'est l'unique exception dans le code applicatif.
+- **Exception légale :** `src/lib/auth/index.ts` lit `process.env.VERCEL_URL` directement — cette variable est injectée par la plateforme Vercel et n'est pas disponible au moment de la validation `env.ts` (elle varie par déploiement). Uniquement utilisée pour `trustedOrigins`.
+- **Exception légale :** `src/lib/auth/index.ts` importe `{ db }` depuis `@/lib/db` directement — l'adapter Better Auth requiert l'instance Drizzle et ne passe pas par un `repository.ts`. C'est la seule exception autorisée à cette règle.
 
 ## Common Mistakes to Avoid
 
