@@ -13,8 +13,14 @@ const eslintConfig = defineConfig([
     rules: {
       "react/no-unescaped-entities": "off",
       // Drizzle safety: prevent accidental delete/update without where clause
-      "drizzle/enforce-delete-with-where": ["error", { drizzleObjectName: ["db"] }],
-      "drizzle/enforce-update-with-where": ["error", { drizzleObjectName: ["db"] }],
+      "drizzle/enforce-delete-with-where": [
+        "error",
+        { drizzleObjectName: ["db"] },
+      ],
+      "drizzle/enforce-update-with-where": [
+        "error",
+        { drizzleObjectName: ["db"] },
+      ],
       // TypeScript import hygiene
       "@typescript-eslint/consistent-type-imports": [
         "error",

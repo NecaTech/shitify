@@ -14,7 +14,13 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       reporter: ["text", "lcov"],
-      exclude: ["node_modules", ".next", "tests", "**/*.config.*", "src/lib/db/migrations/**"],
+      exclude: [
+        "node_modules",
+        ".next",
+        "tests",
+        "**/*.config.*",
+        "src/lib/db/migrations/**",
+      ],
     },
   },
 });
