@@ -1,12 +1,11 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-
-@custom-variant dark (&:is(.dark *));
-
 @import "./theme/colors.css";
 @import "./theme/typography.css";
 @import "./theme/tokens.css";
+
+@custom-variant dark (&:is(.dark *));
 
 @layer base {
   * {
