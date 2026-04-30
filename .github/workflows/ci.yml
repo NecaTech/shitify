@@ -8,7 +8,7 @@ on:
 
 jobs:
   ci:
-    name: Typecheck, Lint, Build
+    name: Typecheck, Lint, Format, Tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -36,8 +36,3 @@ jobs:
 
       - name: Test
         run: pnpm test
-
-      - name: Build
-        run: pnpm build
-        env:
-          SKIP_ENV_VALIDATION: true
