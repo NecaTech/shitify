@@ -1,24 +1,20 @@
-# lib/
+# Règles de la couche Core / Infrastructure (`src/lib/`)
 
-## Règles générales
+## Règles générales de l'Infrastructure
+- **Sécurité serveur :** La directive `'server-only'` est OBLIGATOIRE dans : `auth/index.ts`, `db/index.ts`, et `logger.ts`.
+- **Variables d'environnement :** Toujours importer depuis `env.ts`. L'utilisation directe de `process.env.X` est STRICTEMENT INTERDITE en dehors des exceptions documentées.
 
-- `server-only` obligatoire dans : `auth/index.ts`, `db/index.ts`, `logger.ts`
-- Toujours importer les variables d'env depuis `env.ts` — jamais `process.env.X` directement
+## Exceptions documentées pour `process.env`
+1. `db/index.ts` : `process.env.NODE_ENV` toléré (non validé par t3-env).
+2. `auth/index.ts` : `process.env.VERCEL_URL` toléré (injecté par Vercel, indisponible au build-time) + import direct `{ db }` depuis `@/lib/db` (requis par l'adapter Better Auth).
+3. `drizzle.config.ts` & `scripts/seed.ts` : Scripts CLI Node purs, utilisation de `process.env` autorisée car `@t3-oss/env-nextjs` n'y est pas importable.
 
-## Exceptions process.env documentées (intentionnelles)
+## Base de données (`lib/db/`)
+- **Isolation architecturale :** Les modules de `lib/db/` ne peuvent être importés QUE dans les fichiers `repository.ts` des features ou les scripts de migration.
+- **Requêtes :** Jamais de requêtes SQL brutes (`db.execute(sql\`...\`)`) pour le CRUD. L'utilisation du Query Builder de Drizzle est obligatoire.
+- **Migrations :** Ne jamais écrire de migration SQL manuellement. Toujours utiliser `drizzle-kit generate` puis `drizzle-kit migrate`.
+- **Génération Auth :** Le fichier `lib/db/auth-schema.ts` est autogénéré. Ne JAMAIS l'éditer manuellement. En cas de changement, relancer : `npx @better-auth/cli generate`.
 
-- `db/index.ts` → `process.env.NODE_ENV` uniquement (non validé par t3-env)
-- `auth/index.ts` → `process.env.VERCEL_URL` (injecté par Vercel, indisponible à la validation build-time) + import direct `{ db }` depuis `@/lib/db` (requis par l'adapter Better Auth)
-- `drizzle.config.ts` et `scripts/seed.ts` → scripts CLI Node purs, `@t3-oss/env-nextjs` non importable
-
-## Database
-
-- `lib/db/auth-schema.ts` est généré — ne pas éditer. Regénérer avec `npx @better-auth/cli generate`
-- Toujours `drizzle-kit generate` + `drizzle-kit migrate` — jamais de SQL migration manuel
-- Jamais `db.execute(sql\`...\`)` pour du CRUD — utiliser le query builder Drizzle
-- `lib/db` importé uniquement dans `repository.ts` et migrations
-
-## Logging
-
-- `logger` depuis `lib/logger.ts` (Pino, server-only) — jamais `console.log` en prod
-- Côté client : `console` directement en dev
+## Observabilité / Logging
+- **Serveur :** Utiliser exclusivement `logger` importé de `lib/logger.ts` (Pino, server-only). Interdiction d'utiliser `console.log` en production.
+- **Client :** L'utilisation de l'objet natif `console` est autorisée uniquement en développement.

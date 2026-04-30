@@ -1,38 +1,31 @@
-# Features
+# Architecture des Features (NecaTech)
 
-## Structure
+## Flux de données (Data Flow)
+Le flux est impératif et unidirectionnel : 
+`UI (Client Components) → actions.ts → service.ts → repository.ts → lib/db`
 
-Chaque feature suit le data flow : `actions.ts → service.ts → repository.ts → lib/db`
+- **Interdiction absolue :** Ne jamais sauter de couche (ex: `page.tsx` → `repository.ts` est prohibé).
+- **Isolation :** Les composants UI spécifiques à la feature restent dans `features/<feature>/components/`.
 
-- `actions.ts` — valide avec Zod, appelle le service, retourne `ActionResult<T>`. Toujours `"use server"`.
-- `service.ts` — orchestration métier, jamais de DB directe
-- `repository.ts` — Drizzle uniquement, pas de if/else métier
+## Responsabilités des couches
+- **`actions.ts`** : Point d'entrée serveur. Valide impérativement avec Zod, vérifie la session, appelle le service, retourne `ActionResult<T>`. Toujours `"use server"`.
+- **`service.ts`** : Orchestration métier pure. Aucune interaction directe avec la DB.
+- **`repository.ts`** : Couche d'accès aux données. Drizzle uniquement. Aucune logique métier (if/else conditionnels).
+- **`schema.ts`** : Définition des tables Drizzle.
+- **Sécurité :** Directive `'server-only'` OBLIGATOIRE sur `repository.ts`, `service.ts`, et `schema.ts`.
 
-`server-only` obligatoire dans : `repository.ts`, `service.ts`, `schema.ts`
+## Caching (Next.js 16)
+- **Directive :** `'use cache'` obligatoire sur toutes les fonctions de lecture (`read`) du repository.
+- **Tags :**
+  - Granulaires : ``cacheTag(`entity:${id}`)``
+  - Génériques : `cacheTag('entity')`
+- **Mutations :** Après chaque action, déclencher `revalidateTag('entity', 'default')` (le paramètre `'default'` est requis).
 
-## Règles
+## Workflow d'ajout de feature
+1. Copier le squelette depuis `features/auth/`.
+2. Déclarer les nouveaux schémas dans `lib/db/schema.ts` : `export * from "@/features/<nom>/schema"`.
 
-- Jamais sauter une couche (`page.tsx` → `repository.ts` interdit)
-- Nouvelle feature : copier `features/auth/`, puis `export * from "@/features/<nom>/schema"` dans `lib/db/schema.ts`
-- Composants spécifiques à une feature → `features/<feature>/components/` (pas dans `components/ui/`)
-
-## Caching (Next 16)
-
-- `'use cache'` sur les fonctions read de `repository.ts`
-- Tags granulaires : ``cacheTag(`user:${id}`)`` ; broad : `cacheTag('users')`
-- Import : `import { unstable_cacheTag as cacheTag } from "next/cache"`
-
-```ts
-export async function findUserById(id: string): Promise<User | null> {
-  "use cache";
-  cacheTag(`user:${id}`);
-  const [row] = await db.select().from(user).where(eq(user.id, id)).limit(1);
-  return row ?? null;
-}
-```
-
-Après mutation dans `actions.ts` : `revalidateTag('entity', 'default')` — le 2e argument `'default'` est requis en Next 16.
-
-## Tests
-
-Modèle : `repository.test.ts`, `service.test.ts`. Mock `@/lib/db` avec `vi.mock` en unit ; vraie DB en intégration.
+## Testing
+- **Unitaire :** Mocking strict de `@/lib/db` avec `vi.mock`.
+- **Intégration :** Utilisation d'une instance réelle de base de données.
+- **Fichiers :** Nommage en `<nom>.test.ts` (ex: `repository.test.ts`, `service.test.ts`).
