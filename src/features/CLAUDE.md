@@ -21,6 +21,17 @@ Le flux est impératif et unidirectionnel :
   - Génériques : `cacheTag('entity')`
 - **Mutations :** Après chaque action, déclencher `revalidateTag('entity', 'default')` (le paramètre `'default'` est requis).
 
+## Structure d'une feature
+
+Fichiers obligatoires :
+
+- `actions.ts` — Server Actions, validation Zod, appel au service. Toujours `"use server"`.
+- `service.ts` — Orchestration metier pure. `'server-only'`.
+- `repository.ts` — Acces Drizzle. `'server-only'`.
+- `schema.ts` — Tables Drizzle. `'server-only'`.
+- `types.ts` — Types partages (DTOs, entrees/sorties).
+- `components/` — Composants UI specifiques a la feature.
+
 ## Workflow d'ajout de feature
 1. Copier le squelette depuis `features/auth/`.
 2. Déclarer les nouveaux schémas dans `lib/db/schema.ts` : `export * from "@/features/<nom>/schema"`.

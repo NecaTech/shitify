@@ -6,7 +6,7 @@
 
 ## Sécurité et Protection des routes
 - **Proxy (Border Gateway) :** `proxy.ts` est utilisé uniquement comme un filtre réseau (cookies/headers).
-- **Contrôle d'accès :** La vérification de session est OBLIGATOIRE via `requireSession()` dans chaque page ou Server Action protégée. Ne jamais faire confiance au proxy seul pour l'autorisation de données.
+- **Contrôle d'accès :** La vérification de session est OBLIGATOIRE via `requireSession()` (importe depuis `lib/auth/server.ts`) dans chaque page ou Server Action protégée. Ne jamais faire confiance au proxy seul pour l'autorisation de données.
 - **Maintenance :** Toute nouvelle route protégée doit être déclarée dans `protectedRoutes` au sein de `src/proxy.ts`.
 
 ## Performance et Streaming (Next.js 16)
