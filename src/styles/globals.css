@@ -8,7 +8,6 @@
 @import "./theme/typography.css";
 @import "./theme/tokens.css";
 
-
 @layer base {
   * {
     @apply border-border outline-ring/50;
