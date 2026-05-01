@@ -30,23 +30,27 @@ pnpm install
 cp .env.example .env.local
 ```
 
-Remplir les 4 variables dans `.env.local` :
+Remplir les variables dans `.env.local` :
 
-| Variable              | Description                                |
-| --------------------- | ------------------------------------------ |
-| `DATABASE_URL`        | URL PostgreSQL Neon (`postgresql://...`)   |
-| `BETTER_AUTH_SECRET`  | Secret aléatoire ≥ 32 caractères           |
-| `BETTER_AUTH_URL`     | URL de l'app (ex. `http://localhost:3000`) |
-| `NEXT_PUBLIC_APP_URL` | Même URL (côté client)                     |
+| Variable              | Obligatoire | Description                                                  |
+| --------------------- | ----------- | ------------------------------------------------------------ |
+| `DATABASE_URL`        | Oui         | URL PostgreSQL Neon (pooled, `postgresql://...`)             |
+| `BETTER_AUTH_SECRET`  | Oui         | Secret aléatoire ≥ 32 car. (`openssl rand -base64 32`)       |
+| `BETTER_AUTH_URL`     | Oui         | URL publique de l'app — conditionne `trustedOrigins`         |
+| `NEXT_PUBLIC_APP_URL` | Non         | Même URL (métadonnées OG). Default : `http://localhost:3000` |
+
+> En production, `BETTER_AUTH_URL` et `NEXT_PUBLIC_APP_URL` doivent pointer vers la même URL publique. En dev local, seules les 3 premières variables sont nécessaires.
 
 ### 3. Générer et appliquer les migrations
 
 ```bash
+# Générer le schema Better Auth (tables user, session, account, verification, rateLimit)
+npx @better-auth/cli generate
+
+# Générer et appliquer les migrations Drizzle
 pnpm db:generate
 pnpm db:migrate
 ```
-
-Crée les tables Better Auth (`user`, `session`, `account`, `verification`) dans votre base Neon.
 
 ### 4. Initialiser le projet via Claude Code
 
@@ -153,6 +157,19 @@ Chaque couche a une responsabilité unique. La feature `features/auth/` est l'im
 - **Nouvelle feature** — créer `features/<nom>/` en s'inspirant de `features/auth/`, puis ajouter `export * from "@/features/<nom>/schema"` dans `lib/db/schema.ts`
 
 Voir `CLAUDE.md` pour les règles et conventions complètes.
+
+## Checklist mise en production
+
+À effectuer avant tout déploiement réel (marqueurs `TODO(init-project)` dans le code) :
+
+- [ ] **Auth** — `requireEmailVerification: true` dans `src/lib/auth/index.ts` (configurer un provider SMTP : Resend, Nodemailer…)
+- [ ] **Auth** — vérifier que la table `rateLimit` est bien dans le schema généré (`npx @better-auth/cli generate`)
+- [ ] **CSP** — remplacer `'unsafe-inline'` par des nonces dynamiques dans `proxy.ts` + `next.config.ts`
+- [ ] **CSP** — élargir `connect-src 'self'` avec les domaines réels (Neon, analytics, CDN) dans `next.config.ts`
+- [ ] **Routes** — synchroniser `protectedRoutes` et `config.matcher` dans `proxy.ts` pour chaque nouvelle route protégée
+- [ ] **Env** — définir `NEXT_PUBLIC_APP_URL` avec l'URL de production (métadonnées OG)
+- [ ] **Images** — renseigner `remotePatterns` dans `next.config.ts` si des images externes sont affichées
+- [ ] **Cache** — ajuster `cacheLife` dans les `repository.ts` selon la fréquence de mutation des données
 
 ## License
 
