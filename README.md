@@ -74,46 +74,68 @@ La page d'accueil affiche le guide de démarrage tant que `src/app/page.tsx` n'a
 
 ```
 src/
-├── app/                        # Routing uniquement — pas de logique métier
-│   ├── layout.tsx
-│   ├── page.tsx                # Guide post-clonage (à remplacer)
-│   ├── error.tsx               # Boundary d'erreur global ("use client")
-│   ├── loading.tsx             # Boundary de chargement (active le streaming PPR)
-│   └── not-found.tsx           # 404 global
+├── app/                              # Routing uniquement — pas de logique métier
+│   ├── (authenticated)/              # Route group — toutes les routes protégées
+│   │   ├── layout.tsx                # Appelle requireSession() une seule fois pour le groupe
+│   │   └── dashboard/
+│   │       └── page.tsx              # Page dashboard (à remplacer par le contenu projet)
+│   ├── api/
+│   │   └── auth/
+│   │       └── [...all]/
+│   │           └── route.ts          # Handler Better Auth — ne pas modifier
+│   ├── login/
+│   │   └── page.tsx
+│   ├── register/
+│   │   └── page.tsx
+│   ├── layout.tsx                    # Layout racine (fonts, metadata, viewport)
+│   ├── page.tsx                      # Guide post-clonage (à remplacer par la landing page)
+│   ├── error.tsx                     # Boundary d'erreur global ("use client")
+│   ├── loading.tsx                   # Fallback de chargement racine (spinner global)
+│   └── not-found.tsx                 # 404 global
 ├── components/
-│   ├── ui/                     # Primitives UI génériques (shadcn/ui)
+│   ├── ui/                           # Primitives shadcn/ui — domain-agnostic
 │   │   ├── button.tsx
 │   │   └── input.tsx
-│   └── layout/                 # Composants de shell (Navbar, Sidebar…) — vide, ajouter ici
-├── features/                   # Un répertoire par domaine fonctionnel
-│   └── auth/                   # Implémentation de référence — dupliquer pour chaque feature
-│       ├── actions.ts          # Server Actions — point d'entrée depuis l'UI
-│       ├── service.ts          # Logique métier — orchestre les repositories
-│       ├── repository.ts       # Requêtes DB + cache tags
-│       ├── schema.ts           # Tables Drizzle de cette feature
-│       ├── types.ts            # Types TypeScript scoped
-│       └── components/         # Composants React spécifiques à la feature
-├── hooks/                      # React hooks réutilisables (client uniquement) — vide, ajouter ici
+│   └── layout/                       # Composants de shell (Navbar, Sidebar…) — vide, à peupler
+├── features/                         # Un répertoire par domaine fonctionnel
+│   └── auth/                         # Implémentation de référence — copier pour chaque feature
+│       ├── actions.ts                # Server Actions — "use server", validation Zod, session
+│       ├── service.ts                # Orchestration métier pure — "server-only"
+│       ├── repository.ts             # Requêtes Drizzle + 'use cache' + cacheTag — "server-only"
+│       ├── schema.ts                 # Tables Drizzle de la feature — "server-only"
+│       ├── types.ts                  # Types partagés (User, DTOs)
+│       └── components/               # Composants React spécifiques à la feature
+│           ├── LoginForm.tsx
+│           ├── RegisterForm.tsx
+│           └── ProfileForm.tsx
+├── hooks/                            # React hooks réutilisables (client uniquement) — vide
 ├── lib/
 │   ├── auth/
-│   │   ├── index.ts            # Config Better Auth serveur (server-only)
-│   │   ├── client.ts           # Client Better Auth navigateur
-│   │   └── server.ts           # requireSession() / getOptionalSession()
+│   │   ├── index.ts                  # Config Better Auth (adapter Drizzle, trustedOrigins, rateLimit) — server-only
+│   │   ├── client.ts                 # Client Better Auth navigateur (useSession, signIn…)
+│   │   └── server.ts                 # requireSession() / getOptionalSession() — server-only
 │   ├── db/
-│   │   ├── index.ts            # Instance Drizzle singleton (NeonDatabase<typeof schema>)
-│   │   ├── auth-schema.ts      # Tables Better Auth (généré — ne pas éditer)
-│   │   ├── schema.ts           # Re-exports centraux (ajouter: export * from "@/features/X/schema")
-│   │   └── migrations/         # Généré par drizzle-kit (lancer db:generate puis db:migrate)
-│   ├── env.ts                  # Variables d'env validées (@t3-oss/env-nextjs + Zod)
-│   ├── logger.ts               # Logger Pino (server-only)
-│   ├── validations/
-│   │   └── common.ts           # Schémas Zod partagés (email, password, displayName)
-│   └── utils.ts                # Fonctions utilitaires pures (cn())
-├── proxy.ts                    # Protection des routes (cookies Better Auth) — Next 16
+│   │   ├── index.ts                  # Instance Drizzle singleton + pool Neon — server-only
+│   │   ├── auth-schema.ts            # Tables Better Auth autogénérées — ne jamais éditer manuellement
+│   │   ├── schema.ts                 # Point d'entrée schema agrégé (re-exports des features)
+│   │   └── migrations/               # Généré par drizzle-kit — vide à l'init
+│   ├── env.ts                        # Variables d'env validées (@t3-oss/env-nextjs + Zod)
+│   ├── logger.ts                     # Logger Pino — server-only
+│   ├── utils.ts                      # cn() — clsx + tailwind-merge
+│   └── validations/
+│       └── common.ts                 # Schémas Zod partagés (emailSchema, passwordSchema, displayNameSchema)
+├── proxy.ts                          # Protection des routes — export function proxy() (Next 16)
+├── styles/
+│   ├── globals.css                   # Imports Tailwind + fichiers theme
+│   └── theme/
+│       ├── colors.css                # Variables oklch brutes (:root + .dark)
+│       ├── tokens.css                # Mapping @theme inline → classes Tailwind
+│       ├── typography.css            # Pointeurs de polices
+│       └── animations.css            # @keyframes
 └── types/
-    └── result.ts               # ActionResult<T> — type de retour générique des Server Actions
+    └── result.ts                     # ActionResult<T> — type de retour des Server Actions
 scripts/
-└── seed.ts                     # Seeding de la base (no-op par défaut — à personnaliser)
+└── seed.ts                           # Seeding de la base — à personnaliser par projet
 ```
 
 ## Flux de données
