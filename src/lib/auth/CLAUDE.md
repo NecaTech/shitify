@@ -3,7 +3,8 @@
 ## Structure
 
 - `index.ts` — Configuration Better Auth (adapteur Drizzle, trusted origins, plugins). `'server-only'`.
-- `server.ts` — Fonctions serveur : `requireSession()`, `requireAdmin()`. `'server-only'`.
+- `server.ts` — Fonctions serveur : `requireSession()`, `getOptionalSession()`. `'server-only'`.
+  - `requireAdmin()` — non fourni par le boilerplate : à implémenter selon le modèle de rôles du projet client.
 - `client.ts` — Client Better Auth pour les composants React (hooks `useSession`, `signIn`, etc.).
 - `../db/auth-schema.ts` — Schema genere par `@better-auth/cli`. **Ne jamais editer manuellement.**
 

@@ -31,7 +31,7 @@ export async function updateUser(
 ): Promise<User | null> {
   const [row] = await db
     .update(user)
-    .set(data)
+    .set({ ...data, updatedAt: new Date() })
     .where(eq(user.id, id))
     .returning();
   return row ?? null;

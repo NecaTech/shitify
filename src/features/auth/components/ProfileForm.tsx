@@ -49,7 +49,7 @@ export function ProfileForm({ initialName }: ProfileFormProps) {
 
       {message && (
         <p
-          className={`text-sm ${isSuccess ? "text-green-600 dark:text-green-400" : "text-destructive"}`}
+          className={`text-sm ${isSuccess ? "text-success" : "text-destructive"}`}
         >
           {message}
         </p>

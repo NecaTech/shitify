@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth/client";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 export function RegisterForm() {
   const router = useRouter();
@@ -11,23 +12,27 @@ export function RegisterForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [pending, setPending] = useState(false);
+  const [isPending, startTransition] = useTransition();
 
-  async function handleSubmit(e: React.FormEvent) {
+  function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    setPending(true);
 
-    const { error } = await authClient.signUp.email({ name, email, password });
+    startTransition(async () => {
+      const { error } = await authClient.signUp.email({
+        name,
+        email,
+        password,
+      });
 
-    if (error) {
-      setError(error.message ?? "Une erreur est survenue.");
-      setPending(false);
-      return;
-    }
+      if (error) {
+        setError(error.message ?? "Une erreur est survenue.");
+        return;
+      }
 
-    router.push("/dashboard");
-    router.refresh();
+      router.push("/dashboard");
+      router.refresh();
+    });
   }
 
   return (
@@ -36,28 +41,26 @@ export function RegisterForm() {
         <label htmlFor="name" className="text-sm font-medium">
           Nom
         </label>
-        <input
+        <Input
           id="name"
           type="text"
           autoComplete="name"
           required
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="border-input rounded-md border px-3 py-2 text-sm outline-none focus:ring-2"
         />
       </div>
       <div className="flex flex-col gap-1">
         <label htmlFor="email" className="text-sm font-medium">
           Email
         </label>
-        <input
+        <Input
           id="email"
           type="email"
           autoComplete="email"
           required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="border-input rounded-md border px-3 py-2 text-sm outline-none focus:ring-2"
         />
       </div>
       <div className="flex flex-col gap-1">
@@ -65,7 +68,7 @@ export function RegisterForm() {
           Mot de passe{" "}
           <span className="text-muted-foreground">(12 caractères min.)</span>
         </label>
-        <input
+        <Input
           id="password"
           type="password"
           autoComplete="new-password"
@@ -73,12 +76,11 @@ export function RegisterForm() {
           minLength={12}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="border-input rounded-md border px-3 py-2 text-sm outline-none focus:ring-2"
         />
       </div>
       {error && <p className="text-destructive text-sm">{error}</p>}
-      <Button type="submit" disabled={pending}>
-        {pending ? "Création…" : "Créer un compte"}
+      <Button type="submit" disabled={isPending}>
+        {isPending ? "Création…" : "Créer un compte"}
       </Button>
     </form>
   );

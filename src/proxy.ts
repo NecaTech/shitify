@@ -15,7 +15,14 @@ export function proxy(request: NextRequest) {
 
   if (isProtected && !session) {
     const loginUrl = new URL("/login", request.url);
-    loginUrl.searchParams.set("redirect", pathname);
+    // Only propagate internal paths to prevent open redirect attacks
+    if (
+      pathname.startsWith("/") &&
+      !pathname.startsWith("//") &&
+      !pathname.includes("://")
+    ) {
+      loginUrl.searchParams.set("redirect", pathname);
+    }
     return NextResponse.redirect(loginUrl);
   }
 

@@ -3,7 +3,7 @@
 ## Structure
 
 - `ui/` — Composants headless/radix (shadcn). Domain-agnostic, copier-coller modifiables.
-- `layout/` — Composants de structure (header, footer, sidebar, navigation).
+- `layout/` — Composants de structure (header, footer, sidebar, navigation). Vide dans le boilerplate — à peupler selon le projet.
 
 ## Regles
 
