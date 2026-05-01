@@ -1,5 +1,8 @@
 import "server-only";
-import { unstable_cacheTag as cacheTag } from "next/cache";
+import {
+  unstable_cacheTag as cacheTag,
+  unstable_cacheLife as cacheLife,
+} from "next/cache";
 import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { user } from "./schema";
@@ -10,6 +13,8 @@ export const userTag = (id: string) => `user:${id}`;
 export async function findUserById(id: string): Promise<User | null> {
   "use cache";
   cacheTag(userTag(id));
+  // TODO(init-project): ajuster cacheLife selon la fréquence de mise à jour du profil
+  cacheLife("hours");
   const [row] = await db.select().from(user).where(eq(user.id, id)).limit(1);
   return row ?? null;
 }

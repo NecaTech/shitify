@@ -18,6 +18,12 @@
 - **Migrations :** Ne jamais écrire de migration SQL manuellement. Toujours utiliser `drizzle-kit generate` puis `drizzle-kit migrate`.
 - **Génération Auth :** Le fichier `lib/db/auth-schema.ts` est autogénéré. Ne JAMAIS l'éditer manuellement. En cas de changement, relancer : `npx @better-auth/cli generate`.
 
+## Variables d'environnement — configuration projet
+
+- **`NEXT_PUBLIC_APP_URL`** — optionnel avec default `http://localhost:3000` pour le dev local. En production, **toujours le définir** avec l'URL réelle (utilisé pour `metadataBase` et les OG images).
+- **`BETTER_AUTH_URL`** — obligatoire, utilisé pour `trustedOrigins`. Doit correspondre à l'URL publique de l'app en production.
+- **`NEXT_PUBLIC_APP_URL` vs `BETTER_AUTH_URL`** — les deux doivent pointer vers la même URL en production. `BETTER_AUTH_URL` est server-only et conditionne le bon fonctionnement de l'auth ; `NEXT_PUBLIC_APP_URL` est client-side et conditionne les métadonnées.
+
 ## Observabilité / Logging
 
 - **Serveur :** Utiliser exclusivement `logger` importé de `lib/logger.ts` (Pino, server-only). Interdiction d'utiliser `console.log` en production.

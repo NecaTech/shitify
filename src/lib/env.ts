@@ -10,7 +10,12 @@ export const env = createEnv({
     BETTER_AUTH_URL: z.string().url(),
   },
   client: {
-    NEXT_PUBLIC_APP_URL: z.string().url(),
+    // TODO(init-project): remplacer par z.string().url() sans default une fois le domaine connu
+    NEXT_PUBLIC_APP_URL: z
+      .string()
+      .url()
+      .optional()
+      .default("http://localhost:3000"),
   },
   runtimeEnv: {
     DATABASE_URL: process.env.DATABASE_URL,

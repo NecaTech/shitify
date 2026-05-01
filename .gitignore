@@ -34,3 +34,6 @@ Thumbs.db
 .idea/
 
 # Drizzle — ne pas ignorer les migrations (à committer)
+# Audit & coverage artifacts
+.audit/
+coverage/

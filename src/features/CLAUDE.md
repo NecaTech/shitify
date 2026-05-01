@@ -39,6 +39,13 @@ Fichiers obligatoires :
 
 1. Copier le squelette depuis `features/auth/`.
 2. Déclarer les nouveaux schémas dans `lib/db/schema.ts` : `export * from "@/features/<nom>/schema"`.
+3. Générer la migration : `pnpm db:generate` puis `pnpm db:migrate`.
+
+## Patterns à configurer par projet (TODO init-project)
+
+- **`cacheLife`** dans les `repository.ts` — la valeur `"hours"` du boilerplate est un défaut raisonnable. Ajuster selon la fréquence de mutation des données de la feature (ex. `"minutes"` pour des données temps-réel, `"days"` pour des données statiques).
+- **`cacheTag` granulaire** — le pattern `entity:${id}` est la référence. Ajouter des tags collectifs `cacheTag("entity")` si des listes doivent être invalidées en bloc.
+- **`revalidateTag` après mutation** — toujours appeler `revalidateTag(entityTag(id), "default")` dans `actions.ts` après chaque écriture.
 
 ## Testing
 
