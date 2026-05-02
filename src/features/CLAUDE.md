@@ -13,6 +13,12 @@ Le flux est impératif et unidirectionnel :
 - **`actions.ts`** : Point d'entrée serveur. Valide impérativement avec Zod, vérifie la session, appelle le service, retourne `ActionResult<T>`. Toujours `"use server"`.
 - **`service.ts`** : Orchestration métier pure. Aucune interaction directe avec la DB.
 - **`repository.ts`** : Couche d'accès aux données. Drizzle uniquement. Aucune logique métier (if/else conditionnels).
+
+## Contrat d'erreurs inter-couches
+
+- **`repository.ts` → `service.ts` :** Les repositories retournent toujours `T | null`. Ils ne throw jamais. Un résultat vide est `null`, une erreur Drizzle inattendue se propage naturellement.
+- **`service.ts` → `actions.ts` :** Les services throw une `Error` si un `null` retourné par le repository est inattendu (ex: entité introuvable lors d'une mise à jour). Ils ne retournent pas de type Result.
+- **`actions.ts` :** Enveloppe les appels service dans un `try/catch` et traduit les erreurs en `{ success: false, error: string }`. C'est la seule couche qui produit un `ActionResult<T>`.
 - **`schema.ts`** : Définition des tables Drizzle.
 - **Sécurité :** Directive `'server-only'` OBLIGATOIRE sur `repository.ts`, `service.ts`, et `schema.ts`.
 
