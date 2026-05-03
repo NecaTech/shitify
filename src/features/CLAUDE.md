@@ -28,7 +28,7 @@ Le flux est impératif et unidirectionnel :
 - **Tags :**
   - Granulaires : ``cacheTag(`entity:${id}`)``
   - Génériques : `cacheTag('entity')`
-- **Mutations :** Après chaque action, déclencher `revalidateTag('entity', 'default')` (le paramètre `'default'` est requis).
+- **Mutations :** Après chaque action, déclencher `revalidateTag('entity', 'max')` (stale-while-revalidate recommandé par Next.js 16).
 
 ## Structure d'une feature
 
@@ -51,7 +51,7 @@ Fichiers obligatoires :
 
 - **`cacheLife`** dans les `repository.ts` — la valeur `"hours"` du boilerplate est un défaut raisonnable. Ajuster selon la fréquence de mutation des données de la feature (ex. `"minutes"` pour des données temps-réel, `"days"` pour des données statiques).
 - **`cacheTag` granulaire** — le pattern `entity:${id}` est la référence. Ajouter des tags collectifs `cacheTag("entity")` si des listes doivent être invalidées en bloc.
-- **`revalidateTag` après mutation** — toujours appeler `revalidateTag(entityTag(id), "default")` dans `actions.ts` après chaque écriture.
+- **`revalidateTag` après mutation** — toujours appeler `revalidateTag(entityTag(id), "max")` dans `actions.ts` après chaque écriture.
 
 ## Testing
 

@@ -1,8 +1,5 @@
 import "server-only";
-import {
-  unstable_cacheTag as cacheTag,
-  unstable_cacheLife as cacheLife,
-} from "next/cache";
+import { cacheTag, cacheLife } from "next/cache";
 import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { user } from "./schema";

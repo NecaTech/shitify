@@ -29,7 +29,7 @@ export async function updateProfileAction(
 
   try {
     const updated = await updateUserProfile(session.user.id, parsed.data);
-    revalidateTag(userTag(session.user.id), "default");
+    revalidateTag(userTag(session.user.id), "max");
     return { success: true, data: updated };
   } catch (err) {
     logger.error(
