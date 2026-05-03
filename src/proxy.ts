@@ -26,7 +26,10 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  if (isAuthRoute && session) {
+  // Si un paramètre "redirect" est présent, l'utilisateur a été redirigé ici par
+  // requireSession() car sa session était invalide. On ne le renvoie pas vers
+  // le dashboard pour éviter une boucle de redirection.
+  if (isAuthRoute && session && !request.nextUrl.searchParams.has("redirect")) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 

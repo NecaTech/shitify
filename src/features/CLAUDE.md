@@ -22,6 +22,42 @@ Le flux est impératif et unidirectionnel :
 - **`schema.ts`** : Définition des tables Drizzle.
 - **Sécurité :** Directive `'server-only'` OBLIGATOIRE sur `repository.ts`, `service.ts`, et `schema.ts`.
 
+## Contrat proxy / requireSession (anti-boucle)
+
+Le proxy (`src/proxy.ts`) et `requireSession()` (`src/lib/auth/server.ts`) doivent coopérer pour éviter une boucle de redirection fatale.
+
+**Scénario de boucle :**
+
+1. Cookie de session présent mais invalide (expiré, DB injoignable...)
+2. Proxy sur une route protégée → cookie OK → laisse passer
+3. `requireSession()` → `auth.api.getSession()` échoue → `redirect("/login")`
+4. Proxy sur `/login` → cookie présent → `redirect("/dashboard")`
+5. Retour à 2 → boucle infinie
+
+**Correctif obligatoire en deux points :**
+
+1. **`proxy.ts`** : ne pas rediriger depuis `/login` si un paramètre `redirect` est présent (le user a été explicitement envoyé là par `requireSession`) :
+
+```ts
+if (isAuthRoute && session && !request.nextUrl.searchParams.has("redirect")) {
+  return NextResponse.redirect(new URL("/dashboard", request.url));
+}
+```
+
+2. **`server.ts`** : `requireSession()` doit passer le pathname courant dans la redirection pour que le proxy puisse distinguer une venue légitime d'un rebond :
+
+```ts
+export async function requireSession() {
+  const headersList = await headers();
+  const session = await auth.api.getSession({ headers: headersList });
+  if (!session) {
+    const pathname = headersList.get("x-current-path") ?? "/";
+    redirect(`/login?redirect=${encodeURIComponent(pathname)}`);
+  }
+  return session;
+}
+```
+
 ## Caching (Next.js 16)
 
 - **Directive :** `'use cache'` obligatoire sur toutes les fonctions de lecture (`read`) du repository.

@@ -24,6 +24,42 @@
 - **`BETTER_AUTH_URL`** — obligatoire, utilisé pour `trustedOrigins`. Doit correspondre à l'URL publique de l'app en production.
 - **`NEXT_PUBLIC_APP_URL` vs `BETTER_AUTH_URL`** — les deux doivent pointer vers la même URL en production. `BETTER_AUTH_URL` est server-only et conditionne le bon fonctionnement de l'auth ; `NEXT_PUBLIC_APP_URL` est client-side et conditionne les métadonnées.
 
+## Authentification / Proxy — Contrat anti-boucle
+
+Le proxy (`src/proxy.ts`) et `requireSession()` (`src/lib/auth/server.ts`) doivent impérativement coopérer pour éviter une boucle de redirection.
+
+**Scénario de boucle :**
+
+1. Cookie de session présent mais invalide (expiré, DB injoignable...)
+2. Proxy sur une route protégée → cookie OK → laisse passer
+3. `requireSession()` → `auth.api.getSession()` échoue → `redirect("/login")`
+4. Proxy sur `/login` → cookie présent → `redirect("/dashboard")`
+5. Retour à 2 → boucle infinie
+
+**Correctif obligatoire en deux points :**
+
+1. **`proxy.ts`** : ne pas rediriger depuis `/login` si un paramètre `redirect` est présent :
+
+```ts
+if (isAuthRoute && session && !request.nextUrl.searchParams.has("redirect")) {
+  return NextResponse.redirect(new URL("/dashboard", request.url));
+}
+```
+
+2. **`server.ts`** : `requireSession()` doit passer le pathname courant :
+
+```ts
+export async function requireSession() {
+  const headersList = await headers();
+  const session = await auth.api.getSession({ headers: headersList });
+  if (!session) {
+    const pathname = headersList.get("x-current-path") ?? "/";
+    redirect(`/login?redirect=${encodeURIComponent(pathname)}`);
+  }
+  return session;
+}
+```
+
 ## Observabilité / Logging
 
 - **Serveur :** Utiliser exclusivement `logger` importé de `lib/logger.ts` (Pino, server-only). Interdiction d'utiliser `console.log` en production.

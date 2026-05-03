@@ -9,8 +9,12 @@ import { auth } from "./index";
  * This performs a full DB-backed validation.
  */
 export async function requireSession() {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session) redirect("/login");
+  const headersList = await headers();
+  const session = await auth.api.getSession({ headers: headersList });
+  if (!session) {
+    const pathname = headersList.get("x-current-path") ?? "/";
+    redirect(`/login?redirect=${encodeURIComponent(pathname)}`);
+  }
   return session;
 }
 
