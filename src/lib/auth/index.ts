@@ -5,13 +5,24 @@ import { db } from "@/lib/db";
 import * as schema from "@/lib/db/schema";
 import { env } from "@/lib/env";
 
-// BETTER_AUTH_URL est obligatoire et toujours correct (serveur).
-// Ne pas utiliser NEXT_PUBLIC_APP_URL ici : variable optionnelle avec default localhost,
-// ce qui casserait l'auth en prod si la variable client n'est pas configurée.
-const trustedOrigins = [env.BETTER_AUTH_URL];
-if (process.env.VERCEL_URL) {
-  trustedOrigins.push(`https://${process.env.VERCEL_URL}`);
+function toOrigin(value: string | undefined) {
+  if (!value) return null;
+
+  try {
+    return new URL(value.startsWith("http") ? value : `https://${value}`)
+      .origin;
+  } catch {
+    return null;
+  }
 }
+
+const trustedOrigins = [
+  toOrigin(env.BETTER_AUTH_URL),
+  toOrigin(env.NEXT_PUBLIC_APP_URL),
+  toOrigin(process.env.VERCEL_URL),
+  toOrigin(process.env.VERCEL_PROJECT_PRODUCTION_URL),
+  process.env.NODE_ENV !== "production" ? "http://localhost:3000" : null,
+].filter((origin): origin is string => Boolean(origin));
 
 export const auth = betterAuth({
   secret: env.BETTER_AUTH_SECRET,
