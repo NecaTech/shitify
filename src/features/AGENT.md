@@ -20,7 +20,7 @@ Le flux est impératif et unidirectionnel :
 - **`service.ts` → `actions.ts` :** Les services throw une `Error` si un `null` retourné par le repository est inattendu (ex: entité introuvable lors d'une mise à jour). Ils ne retournent pas de type Result.
 - **`actions.ts` :** Enveloppe les appels service dans un `try/catch` et traduit les erreurs en `{ success: false, error: string }`. C'est la seule couche qui produit un `ActionResult<T>`.
 - **`schema.ts`** : Définition des tables Drizzle.
-- **Sécurité :** Directive `'server-only'` OBLIGATOIRE sur `repository.ts`, `service.ts`, et `schema.ts`.
+- **Sécurité :** Directive `'server-only'` OBLIGATOIRE sur `repository.ts` et `service.ts`. Les `schema.ts` restent importables par Drizzle Kit pour générer les migrations.
 
 ## Contrat proxy / requireSession (anti-boucle)
 
@@ -73,15 +73,34 @@ Fichiers obligatoires :
 - `actions.ts` — Server Actions, validation Zod, appel au service. Toujours `"use server"`.
 - `service.ts` — Orchestration metier pure. `'server-only'`.
 - `repository.ts` — Acces Drizzle. `'server-only'`.
-- `schema.ts` — Tables Drizzle. `'server-only'`.
+- `schema.ts` — Tables Drizzle importables par Drizzle Kit.
 - `types.ts` — Types partages (DTOs, entrees/sorties).
 - `components/` — Composants UI specifiques a la feature.
+
+## Nommage durable
+
+- Nommer la feature par le domaine réel : `booking`, `commerce`, `contact`, `workspace`.
+- Nommer les tables SQL en singulier `snake_case`.
+- Utiliser `resource` uniquement pour le CRUD configurable post-déploiement.
+- Ne pas introduire de préfixes faibles (`custom`, `generic`, `dynamic`, `data`) : ils cachent l'intention et rendent les migrations douloureuses.
+- Si le domaine n'est pas encore stable, utiliser `resource` / `resource_field` / `resource_record` jusqu'à figer une vraie feature typée.
 
 ## Workflow d'ajout de feature
 
 1. Copier le squelette depuis `features/auth/`.
 2. Déclarer les nouveaux schémas dans `lib/db/schema.ts` : `export * from "@/features/<nom>/schema"`.
 3. Générer la migration : `pnpm db:generate` puis `pnpm db:migrate`.
+
+## Workflow d'évolution de schéma
+
+1. Modifier le `schema.ts` local de la feature.
+2. Mettre à jour `types.ts`, `repository.ts`, `service.ts`, `actions.ts` dans cet ordre.
+3. Générer une migration avec `pnpm db:generate`.
+4. Relire le SQL généré : noms, contraintes, indexes, `onDelete`.
+5. Lancer `pnpm typecheck`, `pnpm lint`, `pnpm test`, `pnpm readiness`.
+6. Pour une base déjà déployée, appliquer uniquement avec `pnpm db:migrate`.
+
+Ne jamais corriger une évolution de schéma en modifiant directement une migration déjà appliquée en production.
 
 ## Patterns à configurer par projet (TODO init-project)
 

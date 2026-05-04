@@ -24,10 +24,18 @@ export default async function Home() {
             <Code>pnpm install</Code>
           </Step>
 
-          <Step number={2} title="Configurer l'environnement">
-            <Code>cp .env.example .env.local</Code>
+          <Step number={2} title="Initialiser le projet">
+            <Code>pnpm init-project</Code>
             <p className="text-muted-foreground mt-2 text-sm">
-              Remplir les 4 variables requises dans{" "}
+              Configure le nom, l&apos;URL publique, le dépôt distant optionnel,
+              crée <code className="text-foreground">.env.local</code> et génère
+              le secret Better Auth.
+            </p>
+          </Step>
+
+          <Step number={3} title="Configurer l'environnement">
+            <p className="text-muted-foreground mt-2 text-sm">
+              Vérifier les variables suivantes dans{" "}
               <code className="text-foreground">.env.local</code> :
             </p>
             <ul className="text-muted-foreground mt-2 space-y-1 text-sm">
@@ -37,7 +45,7 @@ export default async function Home() {
               </li>
               <li>
                 <code className="text-foreground">BETTER_AUTH_SECRET</code> —
-                secret aléatoire ≥ 32 caractères
+                généré automatiquement par init-project
               </li>
               <li>
                 <code className="text-foreground">BETTER_AUTH_URL</code> — URL
@@ -50,24 +58,11 @@ export default async function Home() {
             </ul>
           </Step>
 
-          <Step number={3} title="Générer et appliquer les migrations">
-            <Code>pnpm db:generate</Code>
+          <Step number={4} title="Appliquer les migrations">
             <Code>pnpm db:migrate</Code>
             <p className="text-muted-foreground mt-2 text-sm">
-              Crée les tables Better Auth (<code>user</code>,{" "}
-              <code>session</code>, <code>account</code>,{" "}
-              <code>verification</code>) dans votre base Neon.
-            </p>
-          </Step>
-
-          <Step number={4} title="Initialiser le projet">
-            <p className="text-muted-foreground mb-2 text-sm">
-              Dans le terminal Claude Code, lancer :
-            </p>
-            <Code>/new-project</Code>
-            <p className="text-muted-foreground mt-2 text-sm">
-              Ce skill configure le nom du projet, l&apos;URL du dépôt distant,
-              et adapte les métadonnées du boilerplate à votre application.
+              Applique la migration initiale : auth, schémas génériques et CRUD
+              configurable.
             </p>
           </Step>
 

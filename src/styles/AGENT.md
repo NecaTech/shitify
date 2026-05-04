@@ -83,3 +83,33 @@ Le `body { @apply bg-background text-foreground; }` doit être porté par le com
 ## Tokens de couleurs sémantiques — ne pas réécrire la sémantique Shadcn
 
 Les tokens `--secondary`, `--accent`, `--muted` ont une sémantique Shadcn que les composants UI consomment directement (`bg-secondary` dans les boutons, etc.). Ne jamais les remapper vers des couleurs du design system qui brisent cette sémantique. Si le design system a besoin d'une couleur "ardoise", créer un token dédié (`--sidebar`, `--surface-dark`) plutôt que de détourner `--secondary`.
+
+## Retour d'expérience — conflits entre tokens projet et tokens Shadcn
+
+Les tokens Shadcn (`--background`, `--foreground`, `--card`, `--popover`, `--primary`, `--secondary`, `--muted`, `--accent`, `--destructive`, `--border`, `--input`, `--ring`, etc.) sont une API consommée directement par les primitives `src/components/ui/*`. Les détourner pour porter une intention métier ou une palette de marque provoque des régressions transverses : boutons illisibles, formulaires compactés, états hover incohérents, contrastes cassés.
+
+Règle de séparation :
+
+- Les tokens Shadcn restent sémantiques et génériques. Ils décrivent le rôle UI attendu par les composants headless.
+- Les tokens projet portent le vocabulaire produit, métier ou layout avec un nom dédié (`--surface-sidebar`, `--surface-elevated`, `--status-ready`, `--brand-primary`, `--spacing-touch-target`, etc.).
+- Une couleur ou dimension de marque ne doit jamais remplacer un token Shadcn existant si son usage n'est pas identique dans toutes les primitives.
+- Si un composant Shadcn paraît visuellement incorrect, corriger d'abord la primitive ou son variant, pas le token sémantique global.
+
+Exemples interdits :
+
+```css
+/* CASSÉ : tous les composants Shadcn qui utilisent secondary changent de sens */
+--secondary: var(--brand-muted-blue);
+
+/* CASSÉ : input devient une surface métier au lieu d'une bordure/champ */
+--input: var(--surface-sidebar);
+```
+
+Exemples corrects :
+
+```css
+/* OK : token projet explicite, sans collision avec l'API Shadcn */
+--surface-sidebar: oklch(...);
+--brand-muted-blue: oklch(...);
+--spacing-touch-target: 44px;
+```

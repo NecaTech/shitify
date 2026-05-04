@@ -16,6 +16,15 @@
 - Utiliser exclusivement le query builder Drizzle pour le CRUD.
 - Garder les tables métier dans `src/features/<feature>/schema.ts`.
 
+## Convention de nommage SQL
+
+- Les tables sont en `snake_case` singulier : `workspace`, `resource_record`, `contact_submission`.
+- Les colonnes de relation se terminent par `_id` : `workspace_id`, `created_by_id`.
+- Les index suivent `<table>_<colonnes>_idx`.
+- Les tables configurables utilisent le namespace `resource` : `resource`, `resource_field`, `resource_record`.
+- Interdit : noms vagues ou temporaires (`custom_*`, `generic_*`, `data_*`, `thing_*`, `item_*` hors domaine explicite).
+- Interdit : renommer une table après migration appliquée sans migration dédiée et plan de données.
+
 ## Interdictions
 
 - Ne jamais importer `db` dans `page.tsx`, `actions.ts`, `service.ts` ou un composant React.
@@ -36,6 +45,17 @@
 - Toute migration générée doit être relue avant commit.
 - `db:push` est autorisé uniquement en développement local.
 - `db:push` est interdit pour une base de staging ou production.
+
+## Évolution sans douleur
+
+- Ajouter une table est préféré à surcharger `metadata` quand le domaine devient stable.
+- Ajouter une colonne nullable ou avec `default` est le chemin standard pour enrichir une table existante.
+- Rendre une colonne `not null` se fait en deux temps : backfill des données, puis migration de contrainte.
+- Renommer une table, colonne, enum ou index après déploiement exige une migration dédiée et une vérification de données.
+- Supprimer une colonne ou table exige une phase de dépréciation : ne plus écrire, ne plus lire, puis seulement supprimer.
+- Les enums SQL sont stables : ajouter une valeur est acceptable, renommer/supprimer une valeur est une migration sensible.
+- Les champs expérimentaux post-déploiement passent par `resource_field` / `resource_record`; les features stables passent par un vrai `schema.ts` typé.
+- Toute nouvelle feature doit être générable par `pnpm db:generate` depuis zéro et applicable par `pnpm db:migrate` sur un projet déjà déployé.
 
 ## Frontière architecturale
 

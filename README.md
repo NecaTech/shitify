@@ -24,13 +24,17 @@ Production-ready Next.js fullstack starter — prêt à cloner et démarrer un p
 pnpm install
 ```
 
-### 2. Configurer l'environnement
+### 2. Initialiser le projet
 
 ```bash
-cp .env.example .env.local
+pnpm init-project
 ```
 
-Remplir les variables dans `.env.local` :
+Configure le nom du projet, l'URL publique, le dépôt distant optionnel, crée `.env.local`, génère `BETTER_AUTH_SECRET`, et adapte les métadonnées du boilerplate.
+
+### 3. Configurer l'environnement
+
+Vérifier les variables dans `.env.local` :
 
 | Variable              | Obligatoire | Description                                                  |
 | --------------------- | ----------- | ------------------------------------------------------------ |
@@ -39,26 +43,15 @@ Remplir les variables dans `.env.local` :
 | `BETTER_AUTH_URL`     | Oui         | URL publique de l'app — conditionne `trustedOrigins`         |
 | `NEXT_PUBLIC_APP_URL` | Non         | Même URL (métadonnées OG). Default : `http://localhost:3000` |
 
-> En production, `BETTER_AUTH_URL` et `NEXT_PUBLIC_APP_URL` doivent pointer vers la même URL publique. En dev local, seules les 3 premières variables sont nécessaires.
+> `pnpm init-project` remplit `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL` et `NEXT_PUBLIC_APP_URL`. Il reste seulement `DATABASE_URL` à renseigner si elle n'a pas été fournie pendant l'initialisation.
 
-### 3. Générer et appliquer les migrations
+### 4. Appliquer les migrations
 
 ```bash
-# Générer le schema Better Auth (tables user, session, account, verification, rateLimit)
-npx @better-auth/cli generate
-
-# Générer et appliquer les migrations Drizzle
-pnpm db:generate
 pnpm db:migrate
 ```
 
-### 4. Initialiser le projet via Claude Code
-
-```
-/new-project
-```
-
-Configure le nom du projet, l'URL du dépôt distant, et adapte les métadonnées du boilerplate.
+Le boilerplate contient déjà une migration initiale couvrant Better Auth, les schémas génériques, et le CRUD configurable. Générer une nouvelle migration uniquement après modification d'un `schema.ts`.
 
 ### 5. Démarrer le serveur de développement
 
@@ -102,12 +95,22 @@ src/
 │       ├── actions.ts                # Server Actions — "use server", validation Zod, session
 │       ├── service.ts                # Orchestration métier pure — "server-only"
 │       ├── repository.ts             # Requêtes Drizzle + 'use cache' + cacheTag — "server-only"
-│       ├── schema.ts                 # Tables Drizzle de la feature — "server-only"
+│       ├── schema.ts                 # Tables Drizzle de la feature
 │       ├── types.ts                  # Types partagés (User, DTOs)
 │       └── components/               # Composants React spécifiques à la feature
 │           ├── LoginForm.tsx
 │           ├── RegisterForm.tsx
 │           └── ProfileForm.tsx
+│   ├── booking/schema.ts             # Réservations / rendez-vous
+│   ├── commerce/schema.ts            # Produits, commandes, lignes de commande
+│   ├── contact/schema.ts             # Formulaires de contact / leads
+│   ├── dashboard/                    # Dashboard configurable par projet pilote
+│   │   ├── config.ts                 # Stats, actions, sections modifiables à la volée
+│   │   └── components/
+│   │       └── DashboardHome.tsx
+│   ├── notifications/schema.ts       # Notifications utilisateur
+│   ├── uploads/schema.ts             # Fichiers uploadés
+│   └── workspace/schema.ts           # Espaces, membres, rôles
 ├── hooks/                            # React hooks réutilisables (client uniquement) — vide
 ├── lib/
 │   ├── auth/
@@ -118,7 +121,7 @@ src/
 │   │   ├── index.ts                  # Instance Drizzle singleton + pool Neon — server-only
 │   │   ├── auth-schema.ts            # Tables Better Auth autogénérées — ne jamais éditer manuellement
 │   │   ├── schema.ts                 # Point d'entrée schema agrégé (re-exports des features)
-│   │   └── migrations/               # Généré par drizzle-kit — vide à l'init
+│   │   └── migrations/               # Migration initiale + migrations générées
 │   ├── env.ts                        # Variables d'env validées (@t3-oss/env-nextjs + Zod)
 │   ├── logger.ts                     # Logger Pino — server-only
 │   ├── utils.ts                      # cn() — clsx + tailwind-merge
@@ -146,30 +149,76 @@ page.tsx → actions.ts → service.ts → repository.ts → lib/db
 
 Chaque couche a une responsabilité unique. La feature `features/auth/` est l'implémentation de référence complète.
 
+## Schémas génériques
+
+Le boilerplate inclut des schémas Drizzle réutilisables pour accélérer les projets pilotes :
+
+- `workspace` — organisations, espaces de travail, rôles et membres
+- `uploads` — fichiers stockés, visibilité, métadonnées
+- `notifications` — notifications utilisateur lues/non lues
+- `contact` — demandes entrantes, leads, messages
+- `booking` — réservations, rendez-vous, statuts
+- `commerce` — produits, commandes, lignes de commande
+- `crud` — ressources, champs et enregistrements configurables après déploiement
+
+Tous les schémas sont exportés depuis `src/lib/db/schema.ts`. Après adaptation à un projet réel :
+
+```bash
+pnpm db:generate
+pnpm db:migrate
+```
+
+## Dashboard configurable
+
+La page `/dashboard` utilise `src/features/dashboard/config.ts`.
+
+Modifier ce fichier permet d'adapter rapidement :
+
+- les métriques affichées
+- les actions principales
+- les sections de suivi
+- le texte de présentation du pilote
+
+La page route reste volontairement fine : elle récupère la session, le profil, puis rend `DashboardHome`.
+
+## CRUD configurable après déploiement
+
+La route `/dashboard/crud` permet de créer des ressources métier sans nouvelle migration SQL :
+
+- créer/supprimer une ressource (`clients`, `biens`, `demandes`, `prestations`...)
+- ajouter/supprimer des champs
+- créer/modifier/supprimer des enregistrements
+- stocker les valeurs dans `resource_record.data` (`jsonb`)
+
+Ce CRUD est conçu pour les projets pilotes et les démos ambassadeurs. Quand un modèle métier devient stable, créer une vraie feature dédiée dans `src/features/<nom>/` avec son schéma Drizzle typé.
+
 ## Scripts
 
-| Commande             | Description                             |
-| -------------------- | --------------------------------------- |
-| `pnpm dev`           | Serveur de développement                |
-| `pnpm build`         | Build production                        |
-| `pnpm typecheck`     | Vérification TypeScript (sans émission) |
-| `pnpm lint`          | ESLint                                  |
-| `pnpm lint:fix`      | ESLint avec auto-fix                    |
-| `pnpm format`        | Prettier                                |
-| `pnpm format:check`  | Vérification Prettier (CI)              |
-| `pnpm test`          | Tests Vitest                            |
-| `pnpm test:watch`    | Tests Vitest en mode watch              |
-| `pnpm test:coverage` | Tests avec rapport de couverture        |
-| `pnpm db:generate`   | Générer les migrations Drizzle          |
-| `pnpm db:migrate`    | Appliquer les migrations                |
-| `pnpm db:push`       | Push direct du schéma (dev uniquement)  |
-| `pnpm db:check`      | Vérifier la cohérence du schéma         |
-| `pnpm db:studio`     | Interface Drizzle Studio                |
-| `pnpm db:seed`       | Seeder la base de données               |
+| Commande                | Description                             |
+| ----------------------- | --------------------------------------- |
+| `pnpm dev`              | Serveur de développement                |
+| `pnpm build`            | Build production                        |
+| `pnpm typecheck`        | Vérification TypeScript (sans émission) |
+| `pnpm lint`             | ESLint                                  |
+| `pnpm lint:fix`         | ESLint avec auto-fix                    |
+| `pnpm format`           | Prettier                                |
+| `pnpm format:check`     | Vérification Prettier (CI)              |
+| `pnpm init-project`     | Initialiser un projet après clonage     |
+| `pnpm test`             | Tests Vitest                            |
+| `pnpm test:watch`       | Tests Vitest en mode watch              |
+| `pnpm test:coverage`    | Tests avec rapport de couverture        |
+| `pnpm readiness`        | Vérification avant démo/livraison       |
+| `pnpm readiness:static` | Vérification rapide sans lint/tests     |
+| `pnpm db:generate`      | Générer les migrations Drizzle          |
+| `pnpm db:migrate`       | Appliquer les migrations                |
+| `pnpm db:push`          | Push direct du schéma (dev uniquement)  |
+| `pnpm db:check`         | Vérifier la cohérence du schéma         |
+| `pnpm db:studio`        | Interface Drizzle Studio                |
+| `pnpm db:seed`          | Seeder la base de données               |
 
 ## Règles clés
 
-- **Jamais de `process.env.X` direct** — importer depuis `lib/env.ts` (exceptions documentées dans `CLAUDE.md`)
+- **Jamais de `process.env.X` direct** — importer depuis `lib/env.ts` (exceptions documentées dans `AGENT.md`)
 - **Jamais de saut de couche** — `page.tsx` ne peut pas appeler un repository directement
 - **`requireSession()`** dans toutes les pages/actions protégées (ne pas se fier au proxy seul)
 - **Zod avant `requireSession()`** dans les Server Actions — valider l'input d'abord, authentifier ensuite
@@ -178,14 +227,14 @@ Chaque couche a une responsabilité unique. La feature `features/auth/` est l'im
 - **`server-only`** dans `lib/auth/index.ts`, `lib/db/index.ts`, `lib/logger.ts`, `repository.ts`, `service.ts`
 - **Nouvelle feature** — créer `features/<nom>/` en s'inspirant de `features/auth/`, puis ajouter `export * from "@/features/<nom>/schema"` dans `lib/db/schema.ts`
 
-Voir `CLAUDE.md` pour les règles et conventions complètes.
+Voir `AGENT.md` pour les règles et conventions complètes.
 
 ## Checklist mise en production
 
 À effectuer avant tout déploiement réel (marqueurs `TODO(init-project)` dans le code) :
 
 - [ ] **Auth** — `requireEmailVerification: true` dans `src/lib/auth/index.ts` (configurer un provider SMTP : Resend, Nodemailer…)
-- [ ] **Auth** — vérifier que la table `rateLimit` est bien dans le schema généré (`npx @better-auth/cli generate`)
+- [ ] **Auth** — vérifier que la table `rateLimit` reste exportée si la configuration Better Auth change
 - [ ] **CSP** — remplacer `'unsafe-inline'` par des nonces dynamiques dans `proxy.ts` + `next.config.ts`
 - [ ] **CSP** — élargir `connect-src 'self'` avec les domaines réels (Neon, analytics, CDN) dans `next.config.ts`
 - [ ] **Routes** — synchroniser `protectedRoutes` et `config.matcher` dans `proxy.ts` pour chaque nouvelle route protégée

@@ -22,9 +22,12 @@
     "db:check": "drizzle-kit check",
     "db:studio": "drizzle-kit studio",
     "db:seed": "tsx --env-file=.env.local scripts/seed.ts",
+    "init-project": "tsx scripts/init-project.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
+    "readiness": "tsx scripts/readiness.ts",
+    "readiness:static": "tsx scripts/readiness.ts --static",
     "prepare": "husky"
   },
   "dependencies": {

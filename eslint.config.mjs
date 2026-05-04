@@ -7,7 +7,13 @@ import prettier from "eslint-config-prettier";
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
-  globalIgnores([".next/**", "out/**", "build/**", "next-env.d.ts"]),
+  globalIgnores([
+    ".next/**",
+    "out/**",
+    "build/**",
+    "coverage/**",
+    "next-env.d.ts",
+  ]),
   {
     plugins: { drizzle },
     rules: {
@@ -32,6 +38,12 @@ const eslintConfig = defineConfig([
       ],
       // Enforce logger usage (lib/logger.ts) over console in production code
       "no-console": ["warn", { allow: ["warn", "error"] }],
+    },
+  },
+  {
+    files: ["scripts/**/*.ts"],
+    rules: {
+      "no-console": "off",
     },
   },
   // no-floating-promises requires type information — scoped to src/ only
