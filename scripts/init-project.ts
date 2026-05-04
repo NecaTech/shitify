@@ -213,6 +213,26 @@ function updateRemote(answers: Answers) {
   return hasOrigin ? "updated git origin remote" : "added git origin remote";
 }
 
+function formatTouchedFiles() {
+  const result = spawnSync(
+    "pnpm",
+    [
+      "exec",
+      "prettier",
+      "--write",
+      "package.json",
+      "README.md",
+      "AGENT.md",
+      ".env.example",
+      "src/app/layout.tsx",
+    ],
+    { encoding: "utf8", stdio: "pipe" },
+  );
+  return result.status === 0
+    ? "formatted initialized files"
+    : "skipped formatting initialized files";
+}
+
 async function promptAnswers(): Promise<Answers> {
   const remoteFromArg = getArg("remote") || getArg("git-url");
   const nameFromRemote = titleFromSlug(projectNameFromRemote(remoteFromArg));
@@ -299,6 +319,7 @@ async function main() {
     updateEnvLocal(answers),
     updateAgentContext(answers),
     updateRemote(answers),
+    formatTouchedFiles(),
   ];
 
   console.log("\nProject initialized\n");
