@@ -4,6 +4,7 @@
 
 - **Routage uniquement :** Ce dossier contient exclusivement la structure de navigation (`page.tsx`, `layout.tsx`, `loading.tsx`, `error.tsx`).
 - **Interdiction formelle :** Aucune logique métier, aucun appel direct à la base de données, aucun repository.
+- **Lectures serveur :** Une `page.tsx` Server Component peut appeler un `service.ts` pour composer des données de lecture. Les mutations passent par des Server Actions.
 
 ## Sécurité et Protection des routes
 

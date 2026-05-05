@@ -36,14 +36,14 @@ Configure le nom du projet, l'URL publique, le dépôt distant optionnel, crée 
 
 Vérifier les variables dans `.env.local` :
 
-| Variable              | Obligatoire | Description                                                  |
-| --------------------- | ----------- | ------------------------------------------------------------ |
-| `DATABASE_URL`        | Oui         | URL PostgreSQL Neon (pooled, `postgresql://...`)             |
-| `BETTER_AUTH_SECRET`  | Oui         | Secret aléatoire ≥ 32 car. (`openssl rand -base64 32`)       |
-| `BETTER_AUTH_URL`     | Oui         | URL publique de l'app — conditionne `trustedOrigins`         |
-| `NEXT_PUBLIC_APP_URL` | Non         | Même URL (métadonnées OG). Default : `http://localhost:3000` |
+| Variable              | Obligatoire    | Description                                               |
+| --------------------- | -------------- | --------------------------------------------------------- |
+| `DATABASE_URL`        | Oui            | URL PostgreSQL Neon (pooled, `postgresql://...`)          |
+| `BETTER_AUTH_SECRET`  | Oui            | Secret aléatoire ≥ 32 car. (`openssl rand -base64 32`)    |
+| `BETTER_AUTH_URL`     | Non sur Vercel | URL publique de l'app — fallback sur l'URL système Vercel |
+| `NEXT_PUBLIC_APP_URL` | Non            | Même URL (métadonnées OG). Fallback Vercel puis localhost |
 
-> `pnpm init-project` remplit `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL` et `NEXT_PUBLIC_APP_URL`. Il reste seulement `DATABASE_URL` à renseigner si elle n'a pas été fournie pendant l'initialisation.
+> `pnpm init-project` remplit `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL` et `NEXT_PUBLIC_APP_URL`. Sur Vercel, `BETTER_AUTH_URL` et `NEXT_PUBLIC_APP_URL` peuvent aussi être déduites de `VERCEL_PROJECT_PRODUCTION_URL` / `VERCEL_URL` si les variables système Vercel sont exposées. Il reste toujours `DATABASE_URL` à renseigner si elle n'a pas été fournie pendant l'initialisation.
 
 ### 4. Appliquer les migrations
 
@@ -60,6 +60,32 @@ pnpm dev
 ```
 
 La page d'accueil affiche le guide de démarrage tant que `src/app/page.tsx` n'a pas été remplacée par votre landing page.
+
+### Déploiement Vercel reproductible
+
+Après `pnpm init-project` et la création de la base Neon :
+
+```bash
+pnpm vercel:bootstrap
+```
+
+Le script vérifie le CLI Vercel, lie le dossier au projet Vercel, pousse `DATABASE_URL` et `BETTER_AUTH_SECRET` dans Vercel, configure aussi `BETTER_AUTH_URL` / `NEXT_PUBLIC_APP_URL` si une URL publique est connue, puis lance un déploiement production.
+
+Par défaut, la même `DATABASE_URL` est configurée dans les environnements Vercel `production`, `preview` et `development`. Le dev local, les previews et la prod travaillent donc sur la même base tant que `.env.local` contient cette même URL.
+
+Modes utiles :
+
+```bash
+pnpm vercel:bootstrap -- --project mon-projet --yes
+pnpm vercel:bootstrap -- --project mon-projet --team mon-equipe --yes
+pnpm vercel:bootstrap -- --no-deploy
+pnpm vercel:bootstrap -- --production-only
+pnpm vercel:pull-env
+```
+
+`pnpm vercel:pull-env` régénère `.env.local` depuis l'environnement Vercel `production`. Utiliser cette commande sur une nouvelle machine ou après modification des variables Vercel pour garantir que le dev local pointe vers la même DB que la prod.
+
+Si aucune URL publique n'est fournie, le build utilise les variables système Vercel (`VERCEL_PROJECT_PRODUCTION_URL`, puis `VERCEL_URL`). Elles doivent être exposées dans les settings Vercel du projet.
 
 ---
 
@@ -92,7 +118,7 @@ src/
 │   └── layout/                       # Composants de shell (Navbar, Sidebar…) — vide, à peupler
 ├── features/                         # Un répertoire par domaine fonctionnel
 │   └── auth/                         # Implémentation de référence — copier pour chaque feature
-│       ├── actions.ts                # Server Actions — "use server", validation Zod, session
+│       ├── actions.ts                # Server Actions mutations/formulaires — "use server", Zod, session
 │       ├── service.ts                # Orchestration métier pure — "server-only"
 │       ├── repository.ts             # Requêtes Drizzle + 'use cache' + cacheTag — "server-only"
 │       ├── schema.ts                 # Tables Drizzle de la feature
@@ -138,16 +164,20 @@ src/
 └── types/
     └── result.ts                     # ActionResult<T> — type de retour des Server Actions
 scripts/
-└── seed.ts                           # Seeding de la base — à personnaliser par projet
+├── init-project.ts                   # Initialisation post-clonage
+├── readiness.ts                      # Vérifications pré-démo/livraison
+├── seed.ts                           # Seeding de la base — à personnaliser par projet
+└── vercel-bootstrap.ts               # Liaison Vercel, env vars, déploiement prod
 ```
 
 ## Flux de données
 
 ```
-page.tsx → actions.ts → service.ts → repository.ts → lib/db
+Mutations client → actions.ts → service.ts → repository.ts → lib/db
+Lectures page.tsx serveur → service.ts → repository.ts → lib/db
 ```
 
-Chaque couche a une responsabilité unique. La feature `features/auth/` est l'implémentation de référence complète.
+Chaque couche a une responsabilité unique. Les Server Components `page.tsx` peuvent appeler un service pour composer des données de lecture, mais ne doivent jamais appeler un repository ni `lib/db` directement. Les mutations et soumissions de formulaires passent par `actions.ts`. La feature `features/auth/` est l'implémentation de référence complète.
 
 ## Schémas génériques
 
@@ -209,6 +239,8 @@ Ce CRUD est conçu pour les projets pilotes et les démos ambassadeurs. Quand un
 | `pnpm test:coverage`    | Tests avec rapport de couverture        |
 | `pnpm readiness`        | Vérification avant démo/livraison       |
 | `pnpm readiness:static` | Vérification rapide sans lint/tests     |
+| `pnpm vercel:bootstrap` | Configurer Vercel et déployer en prod   |
+| `pnpm vercel:pull-env`  | Synchroniser `.env.local` depuis Vercel |
 | `pnpm db:generate`      | Générer les migrations Drizzle          |
 | `pnpm db:migrate`       | Appliquer les migrations                |
 | `pnpm db:push`          | Push direct du schéma (dev uniquement)  |
@@ -219,7 +251,9 @@ Ce CRUD est conçu pour les projets pilotes et les démos ambassadeurs. Quand un
 ## Règles clés
 
 - **Jamais de `process.env.X` direct** — importer depuis `lib/env.ts` (exceptions documentées dans `AGENT.md`)
-- **Jamais de saut de couche** — `page.tsx` ne peut pas appeler un repository directement
+- **Jamais de saut de couche** — `page.tsx` peut appeler un service pour lire, mais jamais un repository ou `lib/db`
+- **Jamais de hardcoding de contournement** — pas d'URL, secret, id, rôle, email, valeur DB ou résultat de test codé en dur pour faire passer un build/test/déploiement
+- **Diagnostic avant correction** — reproduire/localiser l'erreur, identifier la couche responsable, puis corriger à cette couche
 - **`requireSession()`** dans toutes les pages/actions protégées (ne pas se fier au proxy seul)
 - **Zod avant `requireSession()`** dans les Server Actions — valider l'input d'abord, authentifier ensuite
 - **`userTag(id)`** depuis `repository.ts` pour nommer les cache tags — cohérence lecture/écriture
@@ -238,7 +272,7 @@ Voir `AGENT.md` pour les règles et conventions complètes.
 - [ ] **CSP** — remplacer `'unsafe-inline'` par des nonces dynamiques dans `proxy.ts` + `next.config.ts`
 - [ ] **CSP** — élargir `connect-src 'self'` avec les domaines réels (Neon, analytics, CDN) dans `next.config.ts`
 - [ ] **Routes** — synchroniser `protectedRoutes` et `config.matcher` dans `proxy.ts` pour chaque nouvelle route protégée
-- [ ] **Env** — définir `NEXT_PUBLIC_APP_URL` avec l'URL de production (métadonnées OG)
+- [ ] **Env** — avec domaine custom, définir `BETTER_AUTH_URL` et `NEXT_PUBLIC_APP_URL` avec l'URL canonique ; sans domaine custom, vérifier que les variables système Vercel sont exposées
 - [ ] **Images** — renseigner `remotePatterns` dans `next.config.ts` si des images externes sont affichées
 - [ ] **Cache** — ajuster `cacheLife` dans les `repository.ts` selon la fréquence de mutation des données
 

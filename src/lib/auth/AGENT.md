@@ -24,10 +24,10 @@
 
 - **`requireEmailVerification`** — passer à `true` une fois un provider SMTP configuré (Resend, Nodemailer…).
 - **`storage: "database"`** — requiert la table `rateLimit` dans le schema. Lancer `npx @better-auth/cli generate` puis `pnpm db:generate` lors de l'initialisation.
-- **`trustedOrigins`** — alimenté par `BETTER_AUTH_URL` (requis). Ajouter d'autres origines si l'app est servie depuis plusieurs domaines.
+- **`trustedOrigins`** — alimenté par `BETTER_AUTH_URL`, `NEXT_PUBLIC_APP_URL` et les variables système Vercel. Ajouter d'autres origines si l'app est servie depuis plusieurs domaines.
 - **CSP `connect-src 'self'`** — élargir dans `next.config.ts` avec les domaines réels (Neon, analytics, CDN…).
 
 ## Exceptions `process.env`
 
-- `index.ts` : `process.env.VERCEL_URL` toléré (injecté par Vercel, indisponible au build-time).
+- `index.ts` : `process.env.VERCEL_URL`, `process.env.VERCEL_PROJECT_PRODUCTION_URL` et `process.env.NODE_ENV` tolérés pour les origins Vercel et localhost hors production.
 - L'import direct `{ db }` depuis `@/lib/db` est autorisé (requis par l'adapteur Better Auth).

@@ -23,6 +23,8 @@
     "db:studio": "drizzle-kit studio",
     "db:seed": "tsx --env-file=.env.local scripts/seed.ts",
     "init-project": "tsx scripts/init-project.ts",
+    "vercel:bootstrap": "tsx scripts/vercel-bootstrap.ts",
+    "vercel:pull-env": "tsx scripts/vercel-bootstrap.ts --pull-env --no-deploy --yes",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",

@@ -1,7 +1,8 @@
 import { describe, it, expect } from "vitest";
 import { readdirSync, statSync } from "fs";
 import { join } from "path";
-import { config } from "@/proxy";
+import { NextRequest } from "next/server";
+import { config, proxy } from "@/proxy";
 
 // Extract route segments from proxy matcher (strips /:path* wildcards)
 const matcherRoutes = config.matcher.map((m) => m.replace(/\/:path\*$/, ""));
@@ -22,5 +23,14 @@ describe("proxy route cohérence", () => {
         `Route "${route}" présente dans app/(authenticated)/ mais absente du config.matcher dans proxy.ts`,
       ).toContain(route);
     }
+  });
+
+  it("propage le pathname courant aux Server Components", () => {
+    const request = new NextRequest("https://example.com/login");
+    const response = proxy(request);
+
+    expect(response.headers.get("x-middleware-request-x-current-path")).toBe(
+      "/login",
+    );
   });
 });

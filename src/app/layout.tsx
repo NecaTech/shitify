@@ -15,7 +15,7 @@ export const metadata: Metadata = {
     default: "NecaTech App",
     template: "%s · NecaTech",
   },
-  description: "TODO: describe your app",
+  description: "Application web construite avec le boilerplate NecaTech.",
 };
 
 export default function RootLayout({

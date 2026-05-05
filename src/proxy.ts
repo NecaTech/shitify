@@ -7,6 +7,8 @@ const authRoutes = ["/login", "/register"] as const;
 export function proxy(request: NextRequest) {
   const session = getSessionCookie(request);
   const { pathname } = request.nextUrl;
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-current-path", pathname);
 
   const isProtected = protectedRoutes.some((route) =>
     pathname.startsWith(route),
@@ -33,7 +35,7 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
-  return NextResponse.next();
+  return NextResponse.next({ request: { headers: requestHeaders } });
 }
 
 export const config = {

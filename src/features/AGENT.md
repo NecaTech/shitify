@@ -3,16 +3,27 @@
 ## Flux de données (Data Flow)
 
 Le flux est impératif et unidirectionnel :
-`UI (Client Components) → actions.ts → service.ts → repository.ts → lib/db`
 
-- **Interdiction absolue :** Ne jamais sauter de couche (ex: `page.tsx` → `repository.ts` est prohibé).
+- Mutations et soumissions client : `UI (Client Components) → actions.ts → service.ts → repository.ts → lib/db`
+- Lectures depuis une Server Component route (`page.tsx`) : `page.tsx → service.ts → repository.ts → lib/db`
+
+- **Interdiction absolue :** Ne jamais sauter de couche (ex: `page.tsx` → `repository.ts`, `actions.ts` → `db`, ou composant React → `repository.ts` sont prohibés).
 - **Isolation :** Les composants UI spécifiques à la feature restent dans `features/<feature>/components/`.
+- **Anti-hardcoding :** Ne jamais coder en dur une donnée métier, un id, un rôle, une adresse email, une valeur de statut ou un résultat attendu pour contourner une règle de couche, un test ou une erreur DB. Ces valeurs doivent venir des inputs validés, de la session, de la DB, d'une config de feature ou d'une factory de test.
 
 ## Responsabilités des couches
 
-- **`actions.ts`** : Point d'entrée serveur. Valide impérativement avec Zod, vérifie la session, appelle le service, retourne `ActionResult<T>`. Toujours `"use server"`.
+- **`actions.ts`** : Point d'entrée serveur pour les mutations et les formulaires. Valide impérativement avec Zod, vérifie la session, appelle le service, retourne `ActionResult<T>`. Toujours `"use server"`.
 - **`service.ts`** : Orchestration métier pure. Aucune interaction directe avec la DB.
-- **`repository.ts`** : Couche d'accès aux données. Drizzle uniquement. Aucune logique métier (if/else conditionnels).
+- **`repository.ts`** : Couche d'accès aux données. Drizzle uniquement. Aucune décision métier. Les conditions techniques de mapping (`row ?? null`, absence de ligne, assemblage simple de relations) sont autorisées.
+- **Configuration métier :** Les valeurs par défaut visibles par l'utilisateur peuvent vivre dans un fichier `config.ts` de feature si elles sont assumées comme configuration produit, pas comme correction cachée.
+
+## Diagnostic et qualité d'architecture
+
+- Corriger un bug de feature dans la couche qui en est responsable : validation dans `actions.ts`, règle métier dans `service.ts`, requête dans `repository.ts`, structure persistée dans `schema.ts`.
+- Ne pas déplacer une règle métier dans `actions.ts` ou `repository.ts` pour résoudre vite une erreur.
+- Ne pas dupliquer une règle métier entre client, action et service. Le client peut améliorer l'UX, mais le service reste la source de vérité métier.
+- Si un test échoue, corriger le comportement ou le test selon le contrat documenté. Ne jamais adapter le code à une donnée de test codée en dur.
 
 ## Contrat d'erreurs inter-couches
 

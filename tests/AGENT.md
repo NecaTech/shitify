@@ -14,6 +14,7 @@
 - Garder les tests proches du domaine testé dans `tests/features/<feature>/`.
 - Garder les tests UI partagés dans `tests/components/ui/`.
 - Un test doit être lisible sans ouvrir l'implémentation.
+- Les fixtures et factories de test doivent exprimer un scénario métier. Ne jamais faire passer un test en codant en dur une valeur spéciale dans l'implémentation.
 
 ## Services
 
@@ -63,3 +64,4 @@
 - Ne jamais utiliser de données réelles client.
 - Ne jamais dépendre d'une base distante non dédiée.
 - Ne jamais ignorer un test cassé avec `.skip` sans justification explicite.
+- Ne jamais modifier une assertion pour cacher une régression sans expliquer le changement de contrat testé.
