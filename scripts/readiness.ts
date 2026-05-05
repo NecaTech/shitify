@@ -23,6 +23,69 @@ function read(path: string): string {
   return readFileSync(join(root, path), "utf8");
 }
 
+function listFiles(dir: string, predicate: (path: string) => boolean) {
+  const absolute = join(root, dir);
+  if (!existsSync(absolute)) return [];
+
+  const output: string[] = [];
+  const visit = (current: string) => {
+    for (const entry of readdirSync(current)) {
+      if (["node_modules", ".next", ".git", "coverage"].includes(entry))
+        continue;
+
+      const absoluteEntry = join(current, entry);
+      const relativeEntry = absoluteEntry.slice(root.length + 1);
+      if (statSync(absoluteEntry).isDirectory()) {
+        visit(absoluteEntry);
+        continue;
+      }
+      if (predicate(relativeEntry)) output.push(relativeEntry);
+    }
+  };
+
+  visit(absolute);
+  return output.sort();
+}
+
+function isTsFile(path: string) {
+  return /\.(ts|tsx|mts|cts)$/.test(path);
+}
+
+function hasServerOnlyImport(content: string) {
+  return /import\s+["']server-only["']\s*;?/.test(content);
+}
+
+function importsRuntimeDb(content: string) {
+  const importSources = Array.from(
+    content.matchAll(/from\s+["']([^"']+)["']/g),
+    (match) => match[1] ?? "",
+  );
+
+  return importSources.some((source) => {
+    if (source === "@/lib/db" || source === "@/lib/db/index") return true;
+    if (source.endsWith("/src/lib/db") || source.endsWith("/src/lib/db/index"))
+      return true;
+    return source.match(/^(\.\.?\/)+.*lib\/db(?:\/index)?$/);
+  });
+}
+
+function referencesProductionDatabase(content: string) {
+  return (
+    /DATABASE_URL\s*[:=]/.test(content) ||
+    /postgres(?:ql)?:\/\/[^\s"'`]+/i.test(content) ||
+    /[a-z0-9-]+\.neon\.tech/i.test(content)
+  );
+}
+
+function addBoundaryCheck(name: string, violations: string[]) {
+  add({
+    name,
+    severity: violations.length === 0 ? "pass" : "fail",
+    detail:
+      violations.length === 0 ? undefined : violations.slice(0, 8).join("\n"),
+  });
+}
+
 function runCommand(name: string, command: string, args: string[]) {
   const result = spawnSync(command, args, {
     cwd: root,
@@ -81,6 +144,84 @@ function getProxyMatchers(): string[] {
     .map((match) => match[1])
     .filter((matcher): matcher is string => Boolean(matcher))
     .map((matcher) => matcher.replace(/\/:path\*$/, ""));
+}
+
+function checkArchitectureBoundaries() {
+  const sourceFiles = listFiles(".", (path) => isTsFile(path));
+
+  const dbImportViolations = sourceFiles.filter((path) => {
+    const content = read(path);
+    if (!importsRuntimeDb(content)) return false;
+    if (/^src\/features\/[^/]+\/repository\.ts$/.test(path)) return false;
+    if (path === "src/lib/auth/index.ts") return false;
+    return true;
+  });
+  addBoundaryCheck(
+    "Architecture: @/lib/db import boundary",
+    dbImportViolations,
+  );
+
+  const repositoryImportViolations = sourceFiles.filter((path) => {
+    const content = read(path);
+    const importsRepository =
+      /from\s+["'][^"']*\/repository["']/.test(content) ||
+      /from\s+["']@\/features\/[^"']+\/repository["']/.test(content);
+    if (!importsRepository) return false;
+    if (/\.test\.(ts|tsx)$/.test(path)) return false;
+    if (/^src\/features\/[^/]+\/service\.ts$/.test(path)) return false;
+    return true;
+  });
+  addBoundaryCheck(
+    "Architecture: repository import boundary",
+    repositoryImportViolations,
+  );
+
+  const uiFeatureImports = sourceFiles.filter((path) => {
+    if (!path.startsWith("src/components/ui/")) return false;
+    return read(path).match(/from\s+["']@\/features\//);
+  });
+  addBoundaryCheck(
+    "Architecture: ui primitives are domain-agnostic",
+    uiFeatureImports,
+  );
+
+  const processEnvViolations = sourceFiles.filter((path) => {
+    if (!read(path).includes("process.env")) return false;
+    if (path === "src/lib/env.ts") return false;
+    if (path === "src/lib/db/index.ts") return false;
+    if (path === "src/lib/logger.ts") return false;
+    if (path === "src/lib/auth/index.ts") return false;
+    if (path === "drizzle.config.ts") return false;
+    if (path.startsWith("scripts/")) return false;
+    return true;
+  });
+  addBoundaryCheck("Architecture: process.env boundary", processEnvViolations);
+
+  const missingServerOnly = listFiles("src/features", (path) =>
+    /\/(service|repository)\.ts$/.test(path),
+  ).filter((path) => !hasServerOnlyImport(read(path)));
+  addBoundaryCheck(
+    "Architecture: server-only feature modules",
+    missingServerOnly,
+  );
+
+  const dbPushScriptViolations = listFiles("scripts", (path) =>
+    isTsFile(path),
+  ).filter(
+    (path) => path !== "scripts/readiness.ts" && read(path).includes("db:push"),
+  );
+  addBoundaryCheck(
+    "Architecture: no db:push in scripts",
+    dbPushScriptViolations,
+  );
+
+  const prodDbTestViolations = listFiles("tests", (path) =>
+    /\.(test|spec)\.(ts|tsx)$/.test(path),
+  ).filter((path) => referencesProductionDatabase(read(path)));
+  addBoundaryCheck(
+    "Architecture: tests avoid prod/shared DB",
+    prodDbTestViolations,
+  );
 }
 
 function checkStaticReadiness() {
@@ -190,6 +331,8 @@ function checkStaticReadiness() {
         ? undefined
         : `${todoMatches.length} TODO(init-project) marker(s) remain outside README.`,
   });
+
+  checkArchitectureBoundaries();
 }
 
 function printResults() {

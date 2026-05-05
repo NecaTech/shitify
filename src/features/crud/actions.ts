@@ -14,7 +14,7 @@ import {
   removeResourceField,
   removeResourceRecord,
 } from "./service";
-import { resourcesTag, resourceTag, resourceRecordsTag } from "./repository";
+import { resourcesTag, resourceTag, resourceRecordsTag } from "./cache";
 
 const fieldTypeSchema = z.enum([
   "text",

@@ -7,17 +7,13 @@ import {
   resourceField,
   resourceRecord,
 } from "@/features/crud/schema";
+import { resourcesTag, resourceTag, resourceRecordsTag } from "./cache";
 import type {
   Resource,
   ResourceWithFields,
   ResourceField,
   ResourceRecord,
 } from "./types";
-
-export const resourcesTag = "resources";
-export const resourceTag = (id: string) => `resource:${id}`;
-export const resourceRecordsTag = (entityId: string) =>
-  `resource-records:${entityId}`;
 
 export async function listResources(): Promise<Resource[]> {
   "use cache";

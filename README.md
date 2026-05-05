@@ -73,6 +73,8 @@ Le script vérifie le CLI Vercel, lie le dossier au projet Vercel, pousse `DATAB
 
 Par défaut, la même `DATABASE_URL` est configurée dans les environnements Vercel `production`, `preview` et `development`. Le dev local, les previews et la prod travaillent donc sur la même base tant que `.env.local` contient cette même URL.
 
+Cette stratégie est volontaire en mode `pilot` / `staging` pour accélérer les démos, diagnostics et itérations client. En mode `production`, la DB prod reste accessible pour maintenance, support, migration et diagnostic, mais elle ne doit pas devenir l'environnement de développement quotidien. Avant une vraie production client, séparer les environnements DB ou documenter explicitement l'exception d'exploitation.
+
 Modes utiles :
 
 ```bash
@@ -220,7 +222,7 @@ La route `/dashboard/crud` permet de créer des ressources métier sans nouvelle
 - créer/modifier/supprimer des enregistrements
 - stocker les valeurs dans `resource_record.data` (`jsonb`)
 
-Ce CRUD est conçu pour les projets pilotes et les démos ambassadeurs. Quand un modèle métier devient stable, créer une vraie feature dédiée dans `src/features/<nom>/` avec son schéma Drizzle typé.
+Ce CRUD est conçu pour les projets pilotes, les démos ambassadeurs et le prototypage post-déploiement. Il ne doit pas devenir le modèle durable d'un domaine stable. Quand un modèle métier se stabilise, créer une vraie feature dédiée dans `src/features/<nom>/` avec `schema.ts`, `repository.ts`, `service.ts`, `actions.ts` et `types.ts`. Ne jamais stocker de secret ou donnée sensible dans `resource_record.data`.
 
 ## Scripts
 
@@ -248,6 +250,20 @@ Ce CRUD est conçu pour les projets pilotes et les démos ambassadeurs. Quand un
 | `pnpm db:studio`        | Interface Drizzle Studio                |
 | `pnpm db:seed`          | Seeder la base de données               |
 
+## Readiness et garde-fous statiques
+
+`pnpm readiness` lance typecheck, lint, format check, tests et vérifications statiques d'architecture. `pnpm readiness:static` lance uniquement la partie statique rapide.
+
+Les garde-fous vérifient notamment :
+
+- pas d'import runtime `@/lib/db` hors repositories et adapter Better Auth ;
+- pas d'import `repository.ts` depuis pages, actions, services non autorisés ou composants ;
+- pas de dépendance feature dans `components/ui` ;
+- pas de `process.env` hors exceptions documentées ;
+- `server-only` présent dans les `service.ts` et `repository.ts` ;
+- pas de `db:push` dans les scripts de maintenance ;
+- pas de test connecté à une DB prod/Neon réelle.
+
 ## Règles clés
 
 - **Jamais de `process.env.X` direct** — importer depuis `lib/env.ts` (exceptions documentées dans `AGENT.md`)
@@ -256,7 +272,7 @@ Ce CRUD est conçu pour les projets pilotes et les démos ambassadeurs. Quand un
 - **Diagnostic avant correction** — reproduire/localiser l'erreur, identifier la couche responsable, puis corriger à cette couche
 - **`requireSession()`** dans toutes les pages/actions protégées (ne pas se fier au proxy seul)
 - **Zod avant `requireSession()`** dans les Server Actions — valider l'input d'abord, authentifier ensuite
-- **`userTag(id)`** depuis `repository.ts` pour nommer les cache tags — cohérence lecture/écriture
+- **Cache tags** depuis `cache.ts` de feature — cohérence lecture/écriture sans importer `repository.ts` depuis `actions.ts`
 - **`'use cache'` + `cacheTag`** sur les fonctions read des repositories (Next 16)
 - **`server-only`** dans `lib/auth/index.ts`, `lib/db/index.ts`, `lib/logger.ts`, `repository.ts`, `service.ts`
 - **Nouvelle feature** — créer `features/<nom>/` en s'inspirant de `features/auth/`, puis ajouter `export * from "@/features/<nom>/schema"` dans `lib/db/schema.ts`

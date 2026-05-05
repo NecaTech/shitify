@@ -3,9 +3,8 @@ import { cacheTag, cacheLife } from "next/cache";
 import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { user } from "./schema";
+import { userTag } from "./cache";
 import type { User } from "./types";
-
-export const userTag = (id: string) => `user:${id}`;
 
 export async function findUserById(id: string): Promise<User | null> {
   "use cache";

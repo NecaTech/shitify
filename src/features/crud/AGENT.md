@@ -1,20 +1,30 @@
-# Feature CRUD Configurable (`src/features/crud/`)
+# Scope
 
-## Rôle
+CRUD configurable de pilotage/prototypage post-déploiement. Hérite des règles
+globales et de `src/features/AGENT.md`.
 
-- Outil de pilote post-déploiement pour modéliser rapidement des ressources métier.
-- Les données dynamiques vivent dans `resource`, `resource_field`, `resource_record`.
-- Quand un domaine devient stable, migrer vers une vraie feature typée.
+# Must
 
-## Frontière
+- Garder les données dynamiques dans `resource`, `resource_field`, `resource_record`.
+- Valider les inputs dans `actions.ts`.
+- Normaliser les valeurs dans `service.ts` selon les champs définis.
+- Limiter `repository.ts` aux requêtes Drizzle.
+- Invalider les cache tags après mutation.
 
-- Les champs dynamiques restent configurables ; ne pas y enfouir une logique métier durable.
-- Les actions valident les inputs et invalident les tags.
-- Le service normalise les valeurs selon les champs définis.
-- Le repository reste limité aux requêtes Drizzle.
+# Must not
 
-## Anti-contournement
-
-- Ne jamais utiliser le CRUD configurable pour éviter de créer une migration nécessaire à un domaine stable.
+- Ne jamais utiliser cette feature pour éviter une migration nécessaire à un domaine stable.
 - Ne jamais hardcoder un champ spécial dans `CrudWorkbench`, `service.ts` ou `repository.ts`.
-- Ne jamais stocker de secret ou donnée sensible dans `resource_record.data`.
+- Ne jamais stocker de secret, token, credential, donnée sensible ou document privé dans `resource_record.data`.
+- Ne jamais faire porter une règle métier durable par du JSON dynamique.
+
+# Patterns
+
+- Pilot/staging : acceptable pour explorer vite un modèle client.
+- Domaine stabilisé : créer `src/features/<nom>/schema.ts`, `repository.ts`, `service.ts`, `actions.ts`, `types.ts`, puis migrer les données si nécessaire.
+- Champs expérimentaux : rester génériques et explicites (`label`, `key`, `type`, `isRequired`).
+
+# Checks
+
+- Tests d'actions/service si une règle de normalisation change.
+- `pnpm readiness` avant livraison d'une évolution CRUD.

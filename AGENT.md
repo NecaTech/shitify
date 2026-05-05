@@ -44,6 +44,19 @@ boilerplate sans demander d'initialisation.
 - Si une règle est incomplète ou contradictoire, corriger le fichier `AGENT.md`
   concerné dans le même changement que la correction technique.
 
+## Modes projet
+
+Ces modes sont documentaires pour l'instant. Ne pas ajouter de blocage runtime sans
+demande explicite.
+
+- `pilot` : itération rapide, DB partagée local/preview/prod autorisée si assumée.
+- `staging` : validation client, DB partagée autorisée si l'équipe l'accepte explicitement.
+- `production` : accès prod autorisé pour maintenance, diagnostic, migration et support,
+  mais pas comme environnement de développement quotidien.
+
+TODO(init-project): avant une vraie production client, séparer les environnements DB
+ou documenter formellement l'exception d'exploitation.
+
 ## Routage par zone
 
 | Zone                                        | Lire                                                                                                   |
@@ -105,6 +118,14 @@ boilerplate sans demander d'initialisation.
 - Composants partagés : pas de dépendance à une feature.
 - Primitives UI : aucune logique métier ni cas client spécifique.
 - Scripts : programmes Node purs, exceptions documentées dans `scripts/AGENT.md`.
+- `process.env.X` : interdit hors exceptions documentées (`src/lib/env.ts`, infra serveur
+  ciblée, scripts Node purs, `drizzle.config.ts`).
+- `server-only` : obligatoire dans les `service.ts`, `repository.ts` et modules infra serveur.
+- Migrations : générées avec Drizzle Kit ; pas de migration SQL manuelle.
+- `db:push` : dev local uniquement, jamais staging/prod/DB partagée.
+- Tests : isolés de la prod et de la DB partagée.
+- Auth protégée : `requireSession()` obligatoire côté serveur ; le proxy ne suffit jamais.
+- Proxy/auth : conserver le contrat anti-boucle `redirect` + `x-current-path`.
 
 Flux autorisés :
 

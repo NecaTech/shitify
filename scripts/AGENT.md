@@ -1,64 +1,47 @@
-# Scripts (`scripts/`)
+# Scope
 
-## Structure
+Scripts Node purs hors runtime Next.js :
 
-- `seed.ts` — Script de seed projet. À adapter par projet client.
-- `init-project.ts` — Initialisation post-clonage du template.
-- `vercel-bootstrap.ts` — Liaison Vercel, synchronisation des variables et déploiement reproductible.
-- `readiness.ts` — Vérifications statiques avant démo/livraison.
-- Les scripts sont exécutés hors runtime Next.js.
-- Les scripts sont des programmes Node purs.
+- `init-project.ts` : initialisation post-clonage du template.
+- `vercel-bootstrap.ts` : liaison Vercel, env vars, déploiement reproductible.
+- `readiness.ts` : checks statiques et readiness.
+- `seed.ts` : seed fictif projet.
 
-## Règles
+Hérite des règles globales du root `AGENT.md`. Ce fichier précise uniquement les
+contraintes locales des scripts.
 
-- Utiliser `tsx` pour exécuter les scripts TypeScript.
-- Charger explicitement les variables d'environnement nécessaires.
+# Must
+
+- Utiliser `tsx` pour les scripts TypeScript.
+- Charger ou parser explicitement les variables nécessaires ; `.env.local` n'est jamais implicite.
 - Valider les variables critiques avant toute opération.
-- Écrire des scripts idempotents quand c'est possible.
-- Logger les opérations importantes.
-- Terminer explicitement les connexions ouvertes si nécessaire.
+- Garder les scripts idempotents quand c'est possible.
+- Logger les opérations importantes et afficher clairement l'environnement ciblé.
+- Fermer explicitement les connexions ouvertes.
 - Documenter toute commande dangereuse dans le README ou le script concerné.
-- Ne jamais coder en dur un secret, une connection string, un token Vercel, un project id, une URL client ou une valeur de production pour contourner une invite CLI ou une erreur de build.
+- Pour accéder à la DB, créer une connexion dédiée à partir d'une `DATABASE_URL` explicitement chargée.
+- Les scripts peuvent importer des schémas Drizzle, mais pas `db` depuis `@/lib/db`.
+- `vercel-bootstrap.ts` pousse volontairement la même `DATABASE_URL` en `production`, `preview` et `development` pour le mode pilot/staging.
+- `vercel:pull-env` régénère `.env.local` depuis Vercel production pour aligner le dev local sur la DB partagée assumée.
 
-## Environnement
+# Must not
 
-- `process.env` est autorisé dans `scripts/`.
-- Ne pas importer `@/lib/env` dans les scripts.
-- Ne jamais supposer que `.env.local` est chargé automatiquement : le charger explicitement ou le parser dans le script.
-- Charger l'environnement via `dotenv/config` ou configuration équivalente.
-- Refuser l'exécution si une variable critique est absente.
-
-## Base de données
-
-- Les scripts ne doivent pas importer `db` depuis `@/lib/db`, car ce module est `server-only` et dépend de l'environnement Next validé.
-- Les scripts peuvent importer les schémas Drizzle.
-- Les scripts qui doivent accéder à la DB créent leur propre connexion (`Pool`, Drizzle CLI config, etc.) à partir d'une `DATABASE_URL` explicitement chargée.
-- Ne jamais exécuter un script destructif sans garde explicite.
-- Les scripts de maintenance peuvent cibler la DB partagée local/prod uniquement si la commande est explicite, documentée, idempotente, et non destructive.
-- Ne jamais exécuter `db:push` ou une opération destructive sur la DB partagée local/prod.
-- Afficher clairement l'environnement ciblé avant exécution.
-
-## Vercel
-
-- `vercel-bootstrap.ts` pousse volontairement la même `DATABASE_URL` dans `production`, `preview` et `development` pour que local, preview et prod partagent la même DB.
-- `vercel:pull-env` régénère `.env.local` depuis l'environnement Vercel `production`.
-- Les secrets ne doivent jamais être passés dans les arguments shell ; utiliser stdin, fichier `.env.local` ignoré par Git, ou variables d'environnement locales.
-- Le cache CLI Vercel doit rester local et ignoré (`.vercel-cache/`) pour fonctionner dans les environnements agent/sandbox.
-- Si le CLI demande une information, l'obtenir via option explicite (`--project`, `--team`, `--token`), prompt utilisateur, variable d'environnement locale, ou fichier `.env.local`. Ne pas remplacer l'interaction par une constante projet codée en dur.
-
-## Seed
-
-- Les données de seed doivent être fictives.
-- Les defaults fictifs (`admin@example.local`, mot de passe local documenté, nom `Admin`) sont tolérés uniquement dans `seed.ts` et uniquement pour le développement.
-- Ne jamais inclure de données client réelles.
-- Le seed doit pouvoir être rejoué sans casser la base.
-- Préférer `insert ... on conflict` ou nettoyage contrôlé selon le besoin.
-- Les mots de passe de seed doivent être documentés et réservés au développement.
-
-## Interdictions
-
+- Ne jamais coder en dur secret, connection string, token Vercel, project id, URL client ou valeur de production.
+- Ne jamais passer un secret en argument shell ; utiliser stdin, `.env.local` ignoré par Git ou variables locales.
+- Ne jamais importer `@/lib/env`, module runtime Next.
 - Ne jamais écrire de logique métier durable dans `scripts/`.
-- Ne jamais modifier un schéma depuis un script.
-- Ne jamais générer de migration depuis un script custom.
-- Ne jamais utiliser un script comme contournement d'une règle d'architecture.
+- Ne jamais modifier un schéma ou générer une migration depuis un script custom.
+- Ne jamais exécuter `db:push` ou une opération destructive sur une DB partagée/staging/prod.
 - Ne jamais exécuter d'opération destructive sans confirmation explicite.
+
+# Patterns
+
+- Vercel CLI : garder le cache local dans `.vercel-cache/`.
+- Seed : données fictives uniquement. Les defaults `admin@example.local`, mot de passe local documenté et nom `Admin` sont tolérés uniquement dans `seed.ts` pour le développement.
+- Seed : préférer `insert ... on conflict` ou une logique idempotente équivalente.
+- Maintenance DB partagée : commande explicite, documentée, idempotente et non destructive.
+
+# Checks
+
+- `pnpm readiness:static` pour vérifier les frontières documentées.
+- `pnpm readiness` avant livraison d'un changement de script.

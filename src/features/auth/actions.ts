@@ -5,7 +5,7 @@ import { z } from "zod";
 import { displayNameSchema } from "@/lib/validations/common";
 import { requireSession } from "@/lib/auth/server";
 import { updateUserProfile } from "./service";
-import { userTag } from "./repository";
+import { userTag } from "./cache";
 import { logger } from "@/lib/logger";
 import type { ActionResult } from "@/types/result";
 import type { User } from "./types";
