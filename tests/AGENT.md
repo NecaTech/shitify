@@ -1,7 +1,7 @@
 # Scope
 
 Tests Vitest, Testing Library et setup global. Hérite des règles globales du root
-`AGENT.md`.
+`AGENT.md`. Les tests E2E Playwright vivent dans `e2e/`.
 
 # Must
 
@@ -12,6 +12,7 @@ Tests Vitest, Testing Library et setup global. Hérite des règles globales du r
 - Actions : tester validation Zod, `ActionResult<T>`, erreurs retournées.
 - Composants : queries accessibles (`getByRole`, `getByLabelText`, `getByText`).
 - Proxy : tester routes protégées, routes auth, cas avec/sans cookie et anti-boucle.
+- E2E : couvrir les workflows critiques sans dépendre d'une DB prod, staging ou partagée.
 
 # Must not
 
@@ -30,4 +31,5 @@ Tests Vitest, Testing Library et setup global. Hérite des règles globales du r
 # Checks
 
 - `pnpm test`
+- `pnpm test:e2e` pour les smoke tests runtime avant livraison.
 - `pnpm test:coverage` quand le changement touche une surface partagée.

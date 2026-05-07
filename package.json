@@ -28,8 +28,10 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
     "readiness": "tsx scripts/readiness.ts",
     "readiness:static": "tsx scripts/readiness.ts --static",
+    "readiness:release": "pnpm readiness && pnpm test:e2e",
     "prepare": "husky"
   },
   "dependencies": {
@@ -63,6 +65,7 @@
     "@commitlint/cli": "^19.8.0",
     "@commitlint/config-conventional": "^19.8.0",
     "@commitlint/types": "^19.8.0",
+    "@playwright/test": "^1.59.1",
     "@tailwindcss/postcss": "^4",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",

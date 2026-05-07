@@ -226,33 +226,35 @@ Ce CRUD est conçu pour les projets pilotes, les démos ambassadeurs et le proto
 
 ## Scripts
 
-| Commande                | Description                             |
-| ----------------------- | --------------------------------------- |
-| `pnpm dev`              | Serveur de développement                |
-| `pnpm build`            | Build production                        |
-| `pnpm typecheck`        | Vérification TypeScript (sans émission) |
-| `pnpm lint`             | ESLint                                  |
-| `pnpm lint:fix`         | ESLint avec auto-fix                    |
-| `pnpm format`           | Prettier                                |
-| `pnpm format:check`     | Vérification Prettier (CI)              |
-| `pnpm init-project`     | Initialiser un projet après clonage     |
-| `pnpm test`             | Tests Vitest                            |
-| `pnpm test:watch`       | Tests Vitest en mode watch              |
-| `pnpm test:coverage`    | Tests avec rapport de couverture        |
-| `pnpm readiness`        | Vérification avant démo/livraison       |
-| `pnpm readiness:static` | Vérification rapide sans lint/tests     |
-| `pnpm vercel:bootstrap` | Configurer Vercel et déployer en prod   |
-| `pnpm vercel:pull-env`  | Synchroniser `.env.local` depuis Vercel |
-| `pnpm db:generate`      | Générer les migrations Drizzle          |
-| `pnpm db:migrate`       | Appliquer les migrations                |
-| `pnpm db:push`          | Push direct du schéma (dev uniquement)  |
-| `pnpm db:check`         | Vérifier la cohérence du schéma         |
-| `pnpm db:studio`        | Interface Drizzle Studio                |
-| `pnpm db:seed`          | Seeder la base de données               |
+| Commande                 | Description                             |
+| ------------------------ | --------------------------------------- |
+| `pnpm dev`               | Serveur de développement                |
+| `pnpm build`             | Build production                        |
+| `pnpm typecheck`         | Vérification TypeScript (sans émission) |
+| `pnpm lint`              | ESLint                                  |
+| `pnpm lint:fix`          | ESLint avec auto-fix                    |
+| `pnpm format`            | Prettier                                |
+| `pnpm format:check`      | Vérification Prettier (CI)              |
+| `pnpm init-project`      | Initialiser un projet après clonage     |
+| `pnpm test`              | Tests Vitest                            |
+| `pnpm test:watch`        | Tests Vitest en mode watch              |
+| `pnpm test:coverage`     | Tests avec rapport de couverture        |
+| `pnpm test:e2e`          | Tests Playwright E2E smoke              |
+| `pnpm readiness`         | Vérification avant démo/livraison       |
+| `pnpm readiness:static`  | Vérification rapide sans lint/tests     |
+| `pnpm readiness:release` | Readiness complet + E2E avant livraison |
+| `pnpm vercel:bootstrap`  | Configurer Vercel et déployer en prod   |
+| `pnpm vercel:pull-env`   | Synchroniser `.env.local` depuis Vercel |
+| `pnpm db:generate`       | Générer les migrations Drizzle          |
+| `pnpm db:migrate`        | Appliquer les migrations                |
+| `pnpm db:push`           | Push direct du schéma (dev uniquement)  |
+| `pnpm db:check`          | Vérifier la cohérence du schéma         |
+| `pnpm db:studio`         | Interface Drizzle Studio                |
+| `pnpm db:seed`           | Seeder la base de données               |
 
 ## Readiness et garde-fous statiques
 
-`pnpm readiness` lance typecheck, lint, format check, tests et vérifications statiques d'architecture. `pnpm readiness:static` lance uniquement la partie statique rapide.
+`pnpm readiness` lance typecheck, lint, format check, tests et vérifications statiques d'architecture. `pnpm readiness:static` lance uniquement la partie statique rapide. `pnpm readiness:release` ajoute les tests Playwright E2E pour les contrôles pré-livraison ou staging, sans ralentir la boucle de dev quotidienne.
 
 Les garde-fous vérifient notamment :
 
@@ -263,6 +265,28 @@ Les garde-fous vérifient notamment :
 - `server-only` présent dans les `service.ts` et `repository.ts` ;
 - pas de `db:push` dans les scripts de maintenance ;
 - pas de test connecté à une DB prod/Neon réelle.
+
+## E2E Playwright
+
+Les tests E2E vivent dans `e2e/`. La suite initiale vérifie les chemins critiques qui ne nécessitent pas de seed de base de données : formulaire de connexion, formulaire d'inscription et redirection des routes protégées.
+
+Avant le premier lancement local :
+
+```bash
+pnpm playwright install
+```
+
+Puis :
+
+```bash
+pnpm test:e2e
+```
+
+Pour tester une instance déjà démarrée, renseigner `E2E_BASE_URL` :
+
+```bash
+E2E_BASE_URL=https://staging.example.com pnpm test:e2e
+```
 
 ## Règles clés
 

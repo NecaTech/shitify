@@ -180,6 +180,7 @@ pnpm typecheck
 pnpm lint
 pnpm test
 pnpm readiness
+pnpm readiness:release
 pnpm build
 ```
 

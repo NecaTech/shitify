@@ -38,3 +38,5 @@ Thumbs.db
 # Audit & coverage artifacts
 .audit/
 coverage/
+playwright-report/
+test-results/

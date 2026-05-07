@@ -1,4 +1,6 @@
 .next
 node_modules
 pnpm-lock.yaml
+playwright-report
 src/lib/db/migrations
+test-results

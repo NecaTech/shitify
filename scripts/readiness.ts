@@ -192,6 +192,7 @@ function checkArchitectureBoundaries() {
     if (path === "src/lib/logger.ts") return false;
     if (path === "src/lib/auth/index.ts") return false;
     if (path === "drizzle.config.ts") return false;
+    if (path === "playwright.config.ts") return false;
     if (path.startsWith("scripts/")) return false;
     return true;
   });
