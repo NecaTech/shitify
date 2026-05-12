@@ -6,7 +6,8 @@
 - `server.ts` — Fonctions serveur : `requireSession()`, `getOptionalSession()`. `'server-only'`.
   - `requireAdmin()` — non fourni par le boilerplate : à implémenter selon le modèle de rôles du projet client.
 - `client.ts` — Client Better Auth pour les composants React (hooks `useSession`, `signIn`, etc.).
-- `../db/auth-schema.ts` — Schema genere par `@better-auth/cli`. **Ne jamais editer manuellement.**
+- `../db/auth-schema.generated.ts` — sortie brute Better Auth CLI. **Ne jamais importer dans l'app ni éditer manuellement.**
+- `../db/auth-schema.ts` — sortie transformée schema-aware utilisée par l'app et l'adapter Drizzle. **Ne jamais éditer manuellement.**
 
 ## Fonctions serveur (`server.ts`)
 
@@ -23,7 +24,7 @@
 ## Configuration à effectuer au démarrage du projet (TODO init-project)
 
 - **`requireEmailVerification`** — passer à `true` une fois un provider SMTP configuré (Resend, Nodemailer…).
-- **`storage: "database"`** — requiert la table `rateLimit` dans le schema. Lancer `npx @better-auth/cli generate` puis `pnpm db:generate` lors de l'initialisation.
+- **`storage: "database"`** — requiert la table `rateLimit` dans le schema. Lancer `pnpm auth:generate` puis `pnpm db:generate` lors de l'initialisation ou après un changement Better Auth qui impacte les tables.
 - **`trustedOrigins`** — alimenté par `BETTER_AUTH_URL`, `NEXT_PUBLIC_APP_URL` et les variables système Vercel. Ajouter d'autres origines si l'app est servie depuis plusieurs domaines.
 - **CSP `connect-src 'self'`** — élargir dans `next.config.ts` avec les domaines réels (Neon, analytics, CDN…).
 

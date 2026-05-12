@@ -1,23 +1,16 @@
-import {
-  index,
-  integer,
-  jsonb,
-  pgEnum,
-  pgTable,
-  text,
-  timestamp,
-} from "drizzle-orm/pg-core";
+import { index, integer, jsonb, text, timestamp } from "drizzle-orm/pg-core";
 import { user } from "@/lib/db/auth-schema";
 import { workspace } from "@/features/workspace/schema";
+import { appSchema } from "@/lib/db/app-schema";
 
-export const bookingStatus = pgEnum("booking_status", [
+export const bookingStatus = appSchema.enum("booking_status", [
   "pending",
   "confirmed",
   "cancelled",
   "completed",
 ]);
 
-export const booking = pgTable(
+export const booking = appSchema.table(
   "booking",
   {
     id: text("id").primaryKey(),

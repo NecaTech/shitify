@@ -23,6 +23,7 @@ validations partagées. Hérite des règles globales du root `AGENT.md`.
 
 - `env.ts` : lecture centralisée des variables validées.
 - `db/index.ts` : `NODE_ENV`.
+- `db/schema-name.ts` : `APP_ENV`, `CLIENT_SLUG`, `PROJECT_SLUG` pour les scripts Drizzle et le runtime serveur.
 - `logger.ts` : `NODE_ENV`.
 - `auth/index.ts` : `VERCEL_URL`, `VERCEL_PROJECT_PRODUCTION_URL`, `NODE_ENV`.
 - `drizzle.config.ts` et `scripts/*` : scripts Node purs, selon `scripts/AGENT.md`.

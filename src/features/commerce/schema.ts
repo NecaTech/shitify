@@ -1,16 +1,9 @@
-import {
-  index,
-  integer,
-  jsonb,
-  pgEnum,
-  pgTable,
-  text,
-  timestamp,
-} from "drizzle-orm/pg-core";
+import { index, integer, jsonb, text, timestamp } from "drizzle-orm/pg-core";
 import { user } from "@/lib/db/auth-schema";
 import { workspace } from "@/features/workspace/schema";
+import { appSchema } from "@/lib/db/app-schema";
 
-export const orderStatus = pgEnum("order_status", [
+export const orderStatus = appSchema.enum("order_status", [
   "draft",
   "pending",
   "paid",
@@ -18,7 +11,7 @@ export const orderStatus = pgEnum("order_status", [
   "refunded",
 ]);
 
-export const product = pgTable(
+export const product = appSchema.table(
   "product",
   {
     id: text("id").primaryKey(),
@@ -36,7 +29,7 @@ export const product = pgTable(
   (table) => [index("product_workspace_idx").on(table.workspaceId)],
 );
 
-export const customerOrder = pgTable(
+export const customerOrder = appSchema.table(
   "customer_order",
   {
     id: text("id").primaryKey(),
@@ -65,7 +58,7 @@ export const customerOrder = pgTable(
   ],
 );
 
-export const orderItem = pgTable(
+export const orderItem = appSchema.table(
   "order_item",
   {
     id: text("id").primaryKey(),

@@ -1,6 +1,6 @@
-import { appSchema } from "./app-schema";
 import { relations } from "drizzle-orm";
 import {
+  pgTable,
   text,
   bigint,
   timestamp,
@@ -9,7 +9,7 @@ import {
   index,
 } from "drizzle-orm/pg-core";
 
-export const user = appSchema.table("user", {
+export const user = pgTable("user", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
@@ -22,7 +22,7 @@ export const user = appSchema.table("user", {
     .notNull(),
 });
 
-export const session = appSchema.table(
+export const session = pgTable(
   "session",
   {
     id: text("id").primaryKey(),
@@ -41,7 +41,7 @@ export const session = appSchema.table(
   (table) => [index("session_userId_idx").on(table.userId)],
 );
 
-export const account = appSchema.table(
+export const account = pgTable(
   "account",
   {
     id: text("id").primaryKey(),
@@ -65,7 +65,7 @@ export const account = appSchema.table(
   (table) => [index("account_userId_idx").on(table.userId)],
 );
 
-export const verification = appSchema.table(
+export const verification = pgTable(
   "verification",
   {
     id: text("id").primaryKey(),
@@ -81,7 +81,7 @@ export const verification = appSchema.table(
   (table) => [index("verification_identifier_idx").on(table.identifier)],
 );
 
-export const rateLimit = appSchema.table("rate_limit", {
+export const rateLimit = pgTable("rate_limit", {
   id: text("id").primaryKey(),
   key: text("key").notNull().unique(),
   count: integer("count").notNull(),

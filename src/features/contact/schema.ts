@@ -1,21 +1,15 @@
-import {
-  index,
-  jsonb,
-  pgEnum,
-  pgTable,
-  text,
-  timestamp,
-} from "drizzle-orm/pg-core";
+import { index, jsonb, text, timestamp } from "drizzle-orm/pg-core";
 import { user } from "@/lib/db/auth-schema";
 import { workspace } from "@/features/workspace/schema";
+import { appSchema } from "@/lib/db/app-schema";
 
-export const contactStatus = pgEnum("contact_status", [
+export const contactStatus = appSchema.enum("contact_status", [
   "new",
   "qualified",
   "archived",
 ]);
 
-export const contactSubmission = pgTable(
+export const contactSubmission = appSchema.table(
   "contact_submission",
   {
     id: text("id").primaryKey(),

@@ -1,21 +1,20 @@
 import {
   boolean,
   index,
-  pgEnum,
-  pgTable,
   text,
   timestamp,
   uniqueIndex,
 } from "drizzle-orm/pg-core";
 import { user } from "@/lib/db/auth-schema";
+import { appSchema } from "@/lib/db/app-schema";
 
-export const membershipRole = pgEnum("membership_role", [
+export const membershipRole = appSchema.enum("membership_role", [
   "owner",
   "admin",
   "member",
 ]);
 
-export const workspace = pgTable(
+export const workspace = appSchema.table(
   "workspace",
   {
     id: text("id").primaryKey(),
@@ -31,7 +30,7 @@ export const workspace = pgTable(
   (table) => [uniqueIndex("workspace_slug_idx").on(table.slug)],
 );
 
-export const workspaceMembership = pgTable(
+export const workspaceMembership = appSchema.table(
   "workspace_membership",
   {
     id: text("id").primaryKey(),

@@ -3,16 +3,15 @@ import {
   index,
   integer,
   jsonb,
-  pgEnum,
-  pgTable,
   text,
   timestamp,
   uniqueIndex,
 } from "drizzle-orm/pg-core";
 import { workspace } from "@/features/workspace/schema";
 import { user } from "@/lib/db/auth-schema";
+import { appSchema } from "@/lib/db/app-schema";
 
-export const resourceFieldType = pgEnum("resource_field_type", [
+export const resourceFieldType = appSchema.enum("resource_field_type", [
   "text",
   "textarea",
   "number",
@@ -23,7 +22,7 @@ export const resourceFieldType = pgEnum("resource_field_type", [
   "select",
 ]);
 
-export const resource = pgTable(
+export const resource = appSchema.table(
   "resource",
   {
     id: text("id").primaryKey(),
@@ -49,7 +48,7 @@ export const resource = pgTable(
   ],
 );
 
-export const resourceField = pgTable(
+export const resourceField = appSchema.table(
   "resource_field",
   {
     id: text("id").primaryKey(),
@@ -72,7 +71,7 @@ export const resourceField = pgTable(
   ],
 );
 
-export const resourceRecord = pgTable(
+export const resourceRecord = appSchema.table(
   "resource_record",
   {
     id: text("id").primaryKey(),

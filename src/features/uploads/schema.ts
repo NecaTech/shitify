@@ -1,22 +1,15 @@
-import {
-  index,
-  integer,
-  jsonb,
-  pgEnum,
-  pgTable,
-  text,
-  timestamp,
-} from "drizzle-orm/pg-core";
+import { index, integer, jsonb, text, timestamp } from "drizzle-orm/pg-core";
 import { user } from "@/lib/db/auth-schema";
 import { workspace } from "@/features/workspace/schema";
+import { appSchema } from "@/lib/db/app-schema";
 
-export const uploadVisibility = pgEnum("upload_visibility", [
+export const uploadVisibility = appSchema.enum("upload_visibility", [
   "private",
   "workspace",
   "public",
 ]);
 
-export const uploadedFile = pgTable(
+export const uploadedFile = appSchema.table(
   "uploaded_file",
   {
     id: text("id").primaryKey(),

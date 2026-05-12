@@ -39,19 +39,23 @@ Vérifier les variables dans `.env.local` :
 | Variable              | Obligatoire    | Description                                               |
 | --------------------- | -------------- | --------------------------------------------------------- |
 | `DATABASE_URL`        | Oui            | URL PostgreSQL Neon (pooled, `postgresql://...`)          |
+| `APP_ENV`             | Oui            | Environnement applicatif : `dev`, `staging` ou `prod`     |
+| `CLIENT_SLUG`         | Oui            | Slug client pour le schema DB PostgreSQL                  |
+| `PROJECT_SLUG`        | Oui            | Slug projet pour le schema DB PostgreSQL                  |
 | `BETTER_AUTH_SECRET`  | Oui            | Secret aléatoire ≥ 32 car. (`openssl rand -base64 32`)    |
 | `BETTER_AUTH_URL`     | Non sur Vercel | URL publique de l'app — fallback sur l'URL système Vercel |
 | `NEXT_PUBLIC_APP_URL` | Non            | Même URL (métadonnées OG). Fallback Vercel puis localhost |
 
-> `pnpm init-project` remplit `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL` et `NEXT_PUBLIC_APP_URL`. Sur Vercel, `BETTER_AUTH_URL` et `NEXT_PUBLIC_APP_URL` peuvent aussi être déduites de `VERCEL_PROJECT_PRODUCTION_URL` / `VERCEL_URL` si les variables système Vercel sont exposées. Il reste toujours `DATABASE_URL` à renseigner si elle n'a pas été fournie pendant l'initialisation.
+> `pnpm init-project` remplit `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL` et `NEXT_PUBLIC_APP_URL`. Sur Vercel, `BETTER_AUTH_URL` et `NEXT_PUBLIC_APP_URL` peuvent aussi être déduites de `VERCEL_PROJECT_PRODUCTION_URL` / `VERCEL_URL` si les variables système Vercel sont exposées. Il reste toujours `DATABASE_URL` à renseigner si elle n'a pas été fournie pendant l'initialisation. `APP_ENV`, `CLIENT_SLUG` et `PROJECT_SLUG` déterminent le schema PostgreSQL applicatif `{CLIENT_SLUG}_{PROJECT_SLUG}_{APP_ENV}`.
 
-### 4. Appliquer les migrations
+### 4. Générer puis appliquer la baseline DB
 
 ```bash
+pnpm db:generate
 pnpm db:migrate
 ```
 
-Le boilerplate contient déjà une migration initiale couvrant Better Auth, les schémas génériques, et le CRUD configurable. Générer une nouvelle migration uniquement après modification d'un `schema.ts`.
+Le boilerplate ne commit pas de migration initiale concrète. Les migrations Drizzle contiennent le nom réel du schema PostgreSQL ; chaque projet client doit donc générer sa baseline après `pnpm init-project`, une fois `APP_ENV`, `CLIENT_SLUG`, `PROJECT_SLUG` et `DATABASE_URL` configurés.
 
 ### 5. Démarrer le serveur de développement
 
@@ -147,9 +151,12 @@ src/
 │   │   └── server.ts                 # requireSession() / getOptionalSession() — server-only
 │   ├── db/
 │   │   ├── index.ts                  # Instance Drizzle singleton + pool Neon — server-only
-│   │   ├── auth-schema.ts            # Tables Better Auth autogénérées — ne jamais éditer manuellement
+│   │   ├── app-schema.ts             # Namespace PostgreSQL Drizzle dérivé de l'environnement
+│   │   ├── schema-name.ts            # Nom de schema DB: client_projet_env
+│   │   ├── auth-schema.generated.ts  # Sortie brute Better Auth CLI — ne pas importer dans l'app
+│   │   ├── auth-schema.ts            # Tables Better Auth transformées schema-aware — ne jamais éditer manuellement
 │   │   ├── schema.ts                 # Point d'entrée schema agrégé (re-exports des features)
-│   │   └── migrations/               # Migration initiale + migrations générées
+│   │   └── migrations/               # Baseline générée par projet après init-project
 │   ├── env.ts                        # Variables d'env validées (@t3-oss/env-nextjs + Zod)
 │   ├── logger.ts                     # Logger Pino — server-only
 │   ├── utils.ts                      # cn() — clsx + tailwind-merge
@@ -196,9 +203,25 @@ Le boilerplate inclut des schémas Drizzle réutilisables pour accélérer les p
 Tous les schémas sont exportés depuis `src/lib/db/schema.ts`. Après adaptation à un projet réel :
 
 ```bash
+pnpm auth:generate
 pnpm db:generate
 pnpm db:migrate
 ```
+
+`pnpm auth:generate` régénère les tables Better Auth en deux temps : sortie brute CLI dans `src/lib/db/auth-schema.generated.ts`, puis transformation contrôlée vers `src/lib/db/auth-schema.ts` avec `appSchema.table(...)`. Le fichier `auth-schema.ts` reste le seul point d'import applicatif ; ne jamais importer `auth-schema.generated.ts` dans l'application.
+
+### Stratégie de baseline Drizzle
+
+Le boilerplate retient l'Option A : migrations générées par projet après `init-project`.
+
+Raison : Drizzle sérialise le nom concret du schema PostgreSQL dans les fichiers SQL et snapshots. Committer une baseline générique avec un schema arbitraire (`acme_portal_dev`, `necatech_boilerplate_dev`, etc.) créerait une dette et un risque de réutilisation accidentelle. La baseline doit être générée dans le projet client, avec les slugs réels.
+
+Conséquence pratique :
+
+- le boilerplate garde `src/lib/db/migrations/` vide hors `.gitkeep` ;
+- `pnpm init-project` renseigne `APP_ENV=dev`, `CLIENT_SLUG` et `PROJECT_SLUG` ;
+- `pnpm db:generate` crée la baseline locale du projet ;
+- `pnpm db:migrate` l'applique ensuite à la DB ciblée après création du schema par le garde DB.
 
 ## Dashboard configurable
 
@@ -226,31 +249,40 @@ Ce CRUD est conçu pour les projets pilotes, les démos ambassadeurs et le proto
 
 ## Scripts
 
-| Commande                 | Description                             |
-| ------------------------ | --------------------------------------- |
-| `pnpm dev`               | Serveur de développement                |
-| `pnpm build`             | Build production                        |
-| `pnpm typecheck`         | Vérification TypeScript (sans émission) |
-| `pnpm lint`              | ESLint                                  |
-| `pnpm lint:fix`          | ESLint avec auto-fix                    |
-| `pnpm format`            | Prettier                                |
-| `pnpm format:check`      | Vérification Prettier (CI)              |
-| `pnpm init-project`      | Initialiser un projet après clonage     |
-| `pnpm test`              | Tests Vitest                            |
-| `pnpm test:watch`        | Tests Vitest en mode watch              |
-| `pnpm test:coverage`     | Tests avec rapport de couverture        |
-| `pnpm test:e2e`          | Tests Playwright E2E smoke              |
-| `pnpm readiness`         | Vérification avant démo/livraison       |
-| `pnpm readiness:static`  | Vérification rapide sans lint/tests     |
-| `pnpm readiness:release` | Readiness complet + E2E avant livraison |
-| `pnpm vercel:bootstrap`  | Configurer Vercel et déployer en prod   |
-| `pnpm vercel:pull-env`   | Synchroniser `.env.local` depuis Vercel |
-| `pnpm db:generate`       | Générer les migrations Drizzle          |
-| `pnpm db:migrate`        | Appliquer les migrations                |
-| `pnpm db:push`           | Push direct du schéma (dev uniquement)  |
-| `pnpm db:check`          | Vérifier la cohérence du schéma         |
-| `pnpm db:studio`         | Interface Drizzle Studio                |
-| `pnpm db:seed`           | Seeder la base de données               |
+| Commande                 | Description                                  |
+| ------------------------ | -------------------------------------------- |
+| `pnpm dev`               | Serveur de développement                     |
+| `pnpm build`             | Build production                             |
+| `pnpm typecheck`         | Vérification TypeScript (sans émission)      |
+| `pnpm lint`              | ESLint                                       |
+| `pnpm lint:fix`          | ESLint avec auto-fix                         |
+| `pnpm format`            | Prettier                                     |
+| `pnpm format:check`      | Vérification Prettier (CI)                   |
+| `pnpm init-project`      | Initialiser un projet après clonage          |
+| `pnpm test`              | Tests Vitest                                 |
+| `pnpm test:watch`        | Tests Vitest en mode watch                   |
+| `pnpm test:coverage`     | Tests avec rapport de couverture             |
+| `pnpm test:e2e`          | Tests Playwright E2E smoke                   |
+| `pnpm readiness`         | Vérification avant démo/livraison            |
+| `pnpm readiness:static`  | Vérification rapide sans lint/tests          |
+| `pnpm readiness:release` | Readiness complet + E2E avant livraison      |
+| `pnpm vercel:bootstrap`  | Configurer Vercel et déployer en prod        |
+| `pnpm vercel:pull-env`   | Synchroniser `.env.local` depuis Vercel      |
+| `pnpm auth:generate`     | Régénérer le schema Better Auth schema-aware |
+| `pnpm db:generate`       | Générer les migrations Drizzle               |
+| `pnpm db:migrate`        | Appliquer les migrations                     |
+| `pnpm db:push`           | Push direct du schéma (dev uniquement)       |
+| `pnpm db:check`          | Vérifier la cohérence du schéma              |
+| `pnpm db:studio`         | Interface Drizzle Studio                     |
+| `pnpm db:seed`           | Seeder la base de données                    |
+
+Les commandes DB passent par `scripts/assert-safe-db-env.ts` avant Drizzle ou le seed. Ce garde valide `APP_ENV`, `CLIENT_SLUG`, `PROJECT_SLUG`, `DATABASE_URL`, bloque `db:push` hors `dev`, bloque `db:seed` en `prod`, et crée le schema PostgreSQL applicatif avant `db:migrate` / `db:push` avec `CREATE SCHEMA IF NOT EXISTS "<schemaName>"`.
+
+`pnpm vercel:pull-env` cible l'environnement Vercel production. Si `.env.local` existe, la commande refuse d'écraser le fichier sans confirmation explicite :
+
+```bash
+CONFIRM_PULL_ENV_PROD=overwrite-env-local pnpm vercel:pull-env
+```
 
 ## Readiness et garde-fous statiques
 
@@ -265,6 +297,11 @@ Les garde-fous vérifient notamment :
 - `server-only` présent dans les `service.ts` et `repository.ts` ;
 - pas de `db:push` dans les scripts de maintenance ;
 - pas de test connecté à une DB prod/Neon réelle.
+- schema Better Auth actif généré via `appSchema.table(...)`, sans retour à `pgTable` ni référence `public` ;
+- aucun import applicatif de `src/lib/db/auth-schema.generated.ts`.
+- scripts DB et Vercel env protégés par `scripts/assert-safe-db-env.ts`.
+- aucun `pgTable` / `pgEnum` applicatif hors sortie brute Better Auth ;
+- aucune migration commitée ne doit créer un objet ou une FK dans `public`.
 
 ## E2E Playwright
 
@@ -309,6 +346,7 @@ Voir `AGENT.md` pour les règles et conventions complètes.
 
 - [ ] **Auth** — `requireEmailVerification: true` dans `src/lib/auth/index.ts` (configurer un provider SMTP : Resend, Nodemailer…)
 - [ ] **Auth** — vérifier que la table `rateLimit` reste exportée si la configuration Better Auth change
+- [ ] **Auth** — lancer `pnpm auth:generate` après tout changement Better Auth qui impacte les tables
 - [ ] **CSP** — remplacer `'unsafe-inline'` par des nonces dynamiques dans `proxy.ts` + `next.config.ts`
 - [ ] **CSP** — élargir `connect-src 'self'` avec les domaines réels (Neon, analytics, CDN) dans `next.config.ts`
 - [ ] **Routes** — synchroniser `protectedRoutes` et `config.matcher` dans `proxy.ts` pour chaque nouvelle route protégée

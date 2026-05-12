@@ -1,23 +1,16 @@
-import {
-  boolean,
-  index,
-  jsonb,
-  pgEnum,
-  pgTable,
-  text,
-  timestamp,
-} from "drizzle-orm/pg-core";
+import { boolean, index, jsonb, text, timestamp } from "drizzle-orm/pg-core";
 import { user } from "@/lib/db/auth-schema";
 import { workspace } from "@/features/workspace/schema";
+import { appSchema } from "@/lib/db/app-schema";
 
-export const notificationType = pgEnum("notification_type", [
+export const notificationType = appSchema.enum("notification_type", [
   "info",
   "success",
   "warning",
   "error",
 ]);
 
-export const notification = pgTable(
+export const notification = appSchema.table(
   "notification",
   {
     id: text("id").primaryKey(),

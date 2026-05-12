@@ -6,6 +6,7 @@ Scripts Node purs hors runtime Next.js :
 - `vercel-bootstrap.ts` : liaison Vercel, env vars, déploiement reproductible.
 - `readiness.ts` : checks statiques et readiness.
 - `seed.ts` : seed fictif projet.
+- `assert-safe-db-env.ts` : garde-fou central des commandes DB/Vercel env.
 
 Hérite des règles globales du root `AGENT.md`. Ce fichier précise uniquement les
 contraintes locales des scripts.
@@ -21,8 +22,9 @@ contraintes locales des scripts.
 - Documenter toute commande dangereuse dans le README ou le script concerné.
 - Pour accéder à la DB, créer une connexion dédiée à partir d'une `DATABASE_URL` explicitement chargée.
 - Les scripts peuvent importer des schémas Drizzle, mais pas `db` depuis `@/lib/db`.
-- `vercel-bootstrap.ts` pousse volontairement la même `DATABASE_URL` en `production`, `preview` et `development` pour le mode pilot/staging.
-- `vercel:pull-env` régénère `.env.local` depuis Vercel production pour aligner le dev local sur la DB partagée assumée.
+- `init-project.ts` configure `APP_ENV=dev`, `CLIENT_SLUG` et `PROJECT_SLUG` afin que la baseline Drizzle soit générée par projet.
+- `vercel-bootstrap.ts` doit respecter le mapping Vercel `development -> dev`, `preview -> staging`, `production -> prod`.
+- `vercel:pull-env` production ne doit jamais écraser `.env.local` sans confirmation explicite.
 
 # Must not
 
@@ -40,6 +42,10 @@ contraintes locales des scripts.
 - Seed : données fictives uniquement. Les defaults `admin@example.local`, mot de passe local documenté et nom `Admin` sont tolérés uniquement dans `seed.ts` pour le développement.
 - Seed : préférer `insert ... on conflict` ou une logique idempotente équivalente.
 - Maintenance DB partagée : commande explicite, documentée, idempotente et non destructive.
+- Commandes DB : passer par `assert-safe-db-env.ts <operation>` avant Drizzle, seed ou pull Vercel.
+- Migration/push : créer le schema PostgreSQL applicatif avec `--ensure-schema` avant Drizzle.
+- Baseline Drizzle : ne pas générer de migration depuis un script custom ; laisser `pnpm db:generate` produire la baseline après `init-project`.
+- `pull-env` production : exiger `CONFIRM_PULL_ENV_PROD=overwrite-env-local` si `.env.local` existe.
 
 # Checks
 

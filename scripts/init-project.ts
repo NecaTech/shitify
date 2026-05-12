@@ -4,10 +4,13 @@ import { basename } from "node:path";
 import { randomBytes } from "node:crypto";
 import { createInterface } from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
+import { validateDatabaseIdentifierPart } from "../src/lib/db/schema-name";
 
 type Answers = {
   name: string;
   slug: string;
+  clientSlug: string;
+  projectSlug: string;
   description: string;
   appUrl: string;
   databaseUrl: string;
@@ -50,6 +53,11 @@ function slugify(value: string): string {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
     .replace(/-{2,}/g, "-");
+}
+
+function databaseSlugify(value: string): string {
+  const slug = slugify(value).replace(/-/g, "_");
+  return /^[a-z]/.test(slug) ? slug : `app_${slug}`;
 }
 
 function titleFromSlug(slug: string): string {
@@ -129,19 +137,23 @@ function updateLayout(answers: Answers) {
 function updateEnvExample(answers: Answers) {
   const path = ".env.example";
   if (!existsSync(path)) return "skipped .env.example missing";
-  if (!answers.appUrl) return "skipped .env.example URL defaults";
 
   let content = read(path);
-  content = content.replace(
-    /^BETTER_AUTH_URL=.*$/m,
-    `BETTER_AUTH_URL=${answers.appUrl}`,
-  );
-  content = content.replace(
-    /^NEXT_PUBLIC_APP_URL=.*$/m,
-    `NEXT_PUBLIC_APP_URL=${answers.appUrl}`,
-  );
+  if (answers.appUrl) {
+    content = content.replace(
+      /^BETTER_AUTH_URL=.*$/m,
+      `BETTER_AUTH_URL=${answers.appUrl}`,
+    );
+    content = content.replace(
+      /^NEXT_PUBLIC_APP_URL=.*$/m,
+      `NEXT_PUBLIC_APP_URL=${answers.appUrl}`,
+    );
+  }
+  content = upsertEnv(content, "APP_ENV", "dev");
+  content = upsertEnv(content, "CLIENT_SLUG", answers.clientSlug);
+  content = upsertEnv(content, "PROJECT_SLUG", answers.projectSlug);
   write(path, content);
-  return "updated .env.example app URLs";
+  return "updated .env.example app URLs and DB schema slugs";
 }
 
 function updateEnvLocal(answers: Answers) {
@@ -155,6 +167,9 @@ function updateEnvLocal(answers: Answers) {
   if (!base) return "skipped .env.local missing .env.example";
 
   let content = base;
+  content = upsertEnv(content, "APP_ENV", "dev");
+  content = upsertEnv(content, "CLIENT_SLUG", answers.clientSlug);
+  content = upsertEnv(content, "PROJECT_SLUG", answers.projectSlug);
   content = upsertEnv(content, "DATABASE_URL", answers.databaseUrl);
   content = upsertEnv(
     content,
@@ -238,6 +253,9 @@ async function promptAnswers(): Promise<Answers> {
   const nameFromRemote = titleFromSlug(projectNameFromRemote(remoteFromArg));
   const nameDefault = getArg("name") || nameFromRemote || "Nouveau Projet";
   const slugDefault = getArg("slug") || slugify(nameDefault);
+  const clientSlugDefault = getArg("client-slug") || "client";
+  const projectSlugDefault =
+    getArg("project-slug") || databaseSlugify(slugDefault);
   const descriptionDefault =
     getArg("description") ||
     "Application web construite avec le boilerplate NecaTech.";
@@ -248,6 +266,8 @@ async function promptAnswers(): Promise<Answers> {
     return {
       name: nameDefault,
       slug: slugDefault,
+      clientSlug: clientSlugDefault,
+      projectSlug: projectSlugDefault,
       description: descriptionDefault,
       appUrl: appUrlDefault,
       databaseUrl: databaseUrlDefault,
@@ -271,6 +291,17 @@ async function promptAnswers(): Promise<Answers> {
       (
         await rl.question(`Description courte (${descriptionDefault}) `)
       ).trim() || descriptionDefault;
+    const clientSlug =
+      (await rl.question(`CLIENT_SLUG DB (${clientSlugDefault}) `)).trim() ||
+      clientSlugDefault;
+    const projectSlug =
+      (
+        await rl.question(
+          `PROJECT_SLUG DB (${databaseSlugify(slug) || projectSlugDefault}) `,
+        )
+      ).trim() ||
+      databaseSlugify(slug) ||
+      projectSlugDefault;
     const appUrl =
       (await rl.question(`URL publique/dev (${appUrlDefault}) `)).trim() ||
       appUrlDefault;
@@ -293,6 +324,8 @@ async function promptAnswers(): Promise<Answers> {
     return {
       name,
       slug,
+      clientSlug,
+      projectSlug,
       description,
       appUrl,
       databaseUrl,
@@ -310,6 +343,8 @@ async function main() {
     console.error("Project name and slug are required.");
     process.exit(1);
   }
+  validateDatabaseIdentifierPart("CLIENT_SLUG", answers.clientSlug);
+  validateDatabaseIdentifierPart("PROJECT_SLUG", answers.projectSlug);
 
   const actions = [
     updatePackageJson(answers.slug),
@@ -326,6 +361,7 @@ async function main() {
   for (const action of actions) console.log(`- ${action}`);
   console.log("\nNext steps:");
   console.log("- fill DATABASE_URL in .env.local if it is still empty");
+  console.log("- pnpm db:generate");
   console.log("- pnpm db:migrate");
   console.log("- pnpm readiness:static");
 }

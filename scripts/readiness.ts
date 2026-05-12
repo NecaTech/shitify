@@ -30,7 +30,15 @@ function listFiles(dir: string, predicate: (path: string) => boolean) {
   const output: string[] = [];
   const visit = (current: string) => {
     for (const entry of readdirSync(current)) {
-      if (["node_modules", ".next", ".git", "coverage"].includes(entry))
+      if (
+        [
+          "node_modules",
+          ".next",
+          ".git",
+          "coverage",
+          ".drizzle-pgschema-spike",
+        ].includes(entry)
+      )
         continue;
 
       const absoluteEntry = join(current, entry);
@@ -125,6 +133,13 @@ function getEnvExampleKeys() {
   );
 }
 
+function getPackageScripts() {
+  const packageJson = JSON.parse(read("package.json")) as {
+    scripts?: Record<string, string>;
+  };
+  return packageJson.scripts ?? {};
+}
+
 function getAuthenticatedRoutes(): string[] {
   const dir = join(root, "src/app/(authenticated)");
   if (!existsSync(dir)) return [];
@@ -189,6 +204,7 @@ function checkArchitectureBoundaries() {
     if (!read(path).includes("process.env")) return false;
     if (path === "src/lib/env.ts") return false;
     if (path === "src/lib/db/index.ts") return false;
+    if (path === "src/lib/db/schema-name.ts") return false;
     if (path === "src/lib/logger.ts") return false;
     if (path === "src/lib/auth/index.ts") return false;
     if (path === "drizzle.config.ts") return false;
@@ -209,7 +225,10 @@ function checkArchitectureBoundaries() {
   const dbPushScriptViolations = listFiles("scripts", (path) =>
     isTsFile(path),
   ).filter(
-    (path) => path !== "scripts/readiness.ts" && read(path).includes("db:push"),
+    (path) =>
+      !["scripts/readiness.ts", "scripts/assert-safe-db-env.ts"].includes(
+        path,
+      ) && read(path).includes("db:push"),
   );
   addBoundaryCheck(
     "Architecture: no db:push in scripts",
@@ -222,6 +241,224 @@ function checkArchitectureBoundaries() {
   addBoundaryCheck(
     "Architecture: tests avoid prod/shared DB",
     prodDbTestViolations,
+  );
+}
+
+function getExportedConstNames(content: string) {
+  return new Set(
+    Array.from(
+      content.matchAll(/export\s+const\s+([A-Za-z_$][\w$]*)\s*=/g),
+      (match) => match[1],
+    ).filter((name): name is string => Boolean(name)),
+  );
+}
+
+function checkAuthSchemaIsolation() {
+  const authSchemaPath = "src/lib/db/auth-schema.ts";
+  const generatedSchemaPath = "src/lib/db/auth-schema.generated.ts";
+  const expectedAuthExports = [
+    "user",
+    "session",
+    "account",
+    "verification",
+    "rateLimit",
+  ];
+
+  if (!existsSync(join(root, authSchemaPath))) {
+    add({
+      name: "Auth schema: active schema exists",
+      severity: "fail",
+      detail: `${authSchemaPath} is missing`,
+    });
+    return;
+  }
+
+  const authSchema = read(authSchemaPath);
+  const activeExports = getExportedConstNames(authSchema);
+
+  add({
+    name: "Auth schema: uses app schema",
+    severity:
+      authSchema.includes("appSchema.table(") &&
+      !/\bpgTable\s*(?:,|\})/.test(authSchema) &&
+      !/\bpgTable\s*\(/.test(authSchema)
+        ? "pass"
+        : "fail",
+    detail:
+      authSchema.includes("appSchema.table(") &&
+      !/\bpgTable\s*(?:,|\})/.test(authSchema) &&
+      !/\bpgTable\s*\(/.test(authSchema)
+        ? undefined
+        : "Active Better Auth schema must use appSchema.table(...) and must not use pgTable directly.",
+  });
+
+  add({
+    name: "Auth schema: no public schema references",
+    severity: /\bpublic\b|["']public["']/.test(authSchema) ? "fail" : "pass",
+    detail: /\bpublic\b|["']public["']/.test(authSchema)
+      ? "Active Better Auth schema must not reference the public schema."
+      : undefined,
+  });
+
+  const missingActiveExports = expectedAuthExports.filter(
+    (name) => !activeExports.has(name),
+  );
+  add({
+    name: "Auth schema: expected exports",
+    severity: missingActiveExports.length === 0 ? "pass" : "fail",
+    detail:
+      missingActiveExports.length === 0
+        ? undefined
+        : `Missing exports: ${missingActiveExports.join(", ")}`,
+  });
+
+  if (!existsSync(join(root, generatedSchemaPath))) {
+    add({
+      name: "Auth schema: generated source exists",
+      severity: "fail",
+      detail: `${generatedSchemaPath} is missing`,
+    });
+  } else {
+    const generatedSchema = read(generatedSchemaPath);
+    const generatedExports = getExportedConstNames(generatedSchema);
+    const missingGeneratedExports = expectedAuthExports.filter(
+      (name) => !generatedExports.has(name),
+    );
+    add({
+      name: "Auth schema: generated source expected exports",
+      severity: missingGeneratedExports.length === 0 ? "pass" : "fail",
+      detail:
+        missingGeneratedExports.length === 0
+          ? undefined
+          : `Missing generated exports: ${missingGeneratedExports.join(", ")}`,
+    });
+  }
+
+  const generatedImportViolations = listFiles(".", (path) =>
+    isTsFile(path),
+  ).filter((path) => {
+    if (path === generatedSchemaPath) return false;
+    if (path === "scripts/generate-auth-schema.ts") return false;
+    if (path.startsWith("tests/")) return false;
+    return /from\s+["'][^"']*auth-schema\.generated["']/.test(read(path));
+  });
+  addBoundaryCheck(
+    "Auth schema: generated source is not imported by app code",
+    generatedImportViolations,
+  );
+}
+
+function checkDbGuardScripts() {
+  checkFileExists("scripts/assert-safe-db-env.ts");
+
+  const scripts = getPackageScripts();
+  const requiredGuardedScripts = [
+    "db:generate",
+    "db:migrate",
+    "db:push",
+    "db:check",
+    "db:studio",
+    "db:seed",
+    "vercel:bootstrap",
+    "vercel:pull-env",
+  ];
+  const missingGuards = requiredGuardedScripts.filter(
+    (scriptName) =>
+      !scripts[scriptName]?.includes("scripts/assert-safe-db-env.ts"),
+  );
+  add({
+    name: "DB guard: package scripts are guarded",
+    severity: missingGuards.length === 0 ? "pass" : "fail",
+    detail:
+      missingGuards.length === 0
+        ? undefined
+        : `Missing guard in: ${missingGuards.join(", ")}`,
+  });
+
+  const schemaCreationScripts = ["db:migrate", "db:push"];
+  const missingSchemaCreation = schemaCreationScripts.filter(
+    (scriptName) => !scripts[scriptName]?.includes("--ensure-schema"),
+  );
+  add({
+    name: "DB guard: schema creation before migration/push",
+    severity: missingSchemaCreation.length === 0 ? "pass" : "fail",
+    detail:
+      missingSchemaCreation.length === 0
+        ? undefined
+        : `Missing --ensure-schema in: ${missingSchemaCreation.join(", ")}`,
+  });
+
+  add({
+    name: "DB guard: pull-env production is guarded",
+    severity:
+      scripts["vercel:pull-env"]?.includes("pull-env") &&
+      scripts["vercel:pull-env"]?.includes("--pull-environment=production")
+        ? "pass"
+        : "fail",
+    detail:
+      scripts["vercel:pull-env"]?.includes("pull-env") &&
+      scripts["vercel:pull-env"]?.includes("--pull-environment=production")
+        ? undefined
+        : "vercel:pull-env must run assert-safe-db-env.ts pull-env --pull-environment=production first.",
+  });
+}
+
+function checkApplicationSchemasUseAppSchema() {
+  const schemaFiles = listFiles("src/features", (path) =>
+    path.endsWith("/schema.ts"),
+  );
+
+  const pgTableViolations = schemaFiles.filter((path) =>
+    /\bpgTable\s*(?:,|\(|\})/.test(read(path)),
+  );
+  addBoundaryCheck(
+    "DB schema: feature tables use appSchema.table",
+    pgTableViolations,
+  );
+
+  const pgEnumViolations = schemaFiles.filter((path) =>
+    /\bpgEnum\s*(?:,|\(|\})/.test(read(path)),
+  );
+  addBoundaryCheck(
+    "DB schema: feature enums use appSchema.enum",
+    pgEnumViolations,
+  );
+}
+
+function checkMigrationBaseline() {
+  const migrationFiles = listFiles("src/lib/db/migrations", (path) =>
+    path.endsWith(".sql"),
+  );
+
+  if (migrationFiles.length === 0) {
+    add({
+      name: "Database migrations",
+      severity: "pass",
+      detail:
+        "No committed SQL baseline. Expected for the generic boilerplate; generate after init-project.",
+    });
+    return;
+  }
+
+  const publicSchemaViolations = migrationFiles.filter((path) => {
+    const content = read(path);
+    return (
+      /CREATE\s+TYPE\s+"public"\./i.test(content) ||
+      /CREATE\s+TABLE\s+"public"\./i.test(content) ||
+      /REFERENCES\s+"public"\./i.test(content)
+    );
+  });
+  addBoundaryCheck(
+    "Database migrations: no public schema ownership",
+    publicSchemaViolations,
+  );
+
+  const unqualifiedTableViolations = migrationFiles.filter((path) =>
+    /CREATE\s+TABLE\s+"[^".]+"\s*\(/i.test(read(path)),
+  );
+  addBoundaryCheck(
+    "Database migrations: tables are schema-qualified",
+    unqualifiedTableViolations,
   );
 }
 
@@ -238,6 +475,9 @@ function checkStaticReadiness() {
   const envKeys = getEnvExampleKeys();
   for (const key of [
     "DATABASE_URL",
+    "APP_ENV",
+    "CLIENT_SLUG",
+    "PROJECT_SLUG",
     "BETTER_AUTH_SECRET",
     "BETTER_AUTH_URL",
     "NEXT_PUBLIC_APP_URL",
@@ -292,17 +532,7 @@ function checkStaticReadiness() {
         : `Missing in proxy matcher: ${missingRoutes.join(", ")}`,
   });
 
-  const migrationsDir = join(root, "src/lib/db/migrations");
-  const hasMigrations =
-    existsSync(migrationsDir) &&
-    readdirSync(migrationsDir).some((entry) => entry.endsWith(".sql"));
-  add({
-    name: "Database migrations",
-    severity: hasMigrations ? "pass" : "warn",
-    detail: hasMigrations
-      ? undefined
-      : "No SQL migration found. Expected before a deployed pilot with database state.",
-  });
+  checkMigrationBaseline();
 
   const appLayout = existsSync(join(root, "src/app/layout.tsx"))
     ? read("src/app/layout.tsx")
@@ -334,6 +564,9 @@ function checkStaticReadiness() {
   });
 
   checkArchitectureBoundaries();
+  checkAuthSchemaIsolation();
+  checkDbGuardScripts();
+  checkApplicationSchemasUseAppSchema();
 }
 
 function printResults() {
