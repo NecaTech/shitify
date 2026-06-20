@@ -94,6 +94,8 @@ ou documenter formellement l'exception d'exploitation.
 | Tests                                       | `tests/AGENT.md`                                                                                       |
 | Tests de features                           | `tests/AGENT.md`, `tests/features/AGENT.md`                                                            |
 | Tests auth                                  | `tests/AGENT.md`, `tests/features/AGENT.md`, `tests/features/auth/AGENT.md`                            |
+| Tests de scripts                            | `tests/AGENT.md`, `tests/scripts/AGENT.md`, `scripts/AGENT.md`                                         |
+| Tests qualité de suite                      | `tests/AGENT.md`, `tests/quality/AGENT.md`                                                             |
 
 ## Routage par type de tâche
 
@@ -106,6 +108,7 @@ ou documenter formellement l'exception d'exploitation.
 - Modifier l'UI : `src/components/AGENT.md`, `src/styles/AGENT.md`, puis le sous-dossier local.
 - Corriger un bug : lire les agents de la couche suspecte avant patch.
 - Ajouter ou corriger des tests : `tests/AGENT.md`, puis le sous-dossier local.
+- Promouvoir un apprentissage projet en test boilerplate : abstraire le comportement, exclure le métier client, puis ajouter le test sous `tests/features/`, `tests/scripts/` ou `tests/quality/` selon la couche vérifiée.
 
 ## Règles d'architecture globales
 
@@ -124,6 +127,7 @@ ou documenter formellement l'exception d'exploitation.
 - Migrations : générées avec Drizzle Kit ; pas de migration SQL manuelle.
 - `db:push` : dev local uniquement, jamais staging/prod/DB partagée.
 - Tests : isolés de la prod et de la DB partagée.
+- Socle minimum de tests : actions serveur, garde-fous scripts/env et discipline de suite doivent rester exécutables par `pnpm test`.
 - Auth protégée : `requireSession()` obligatoire côté serveur ; le proxy ne suffit jamais.
 - Proxy/auth : conserver le contrat anti-boucle `redirect` + `x-current-path`.
 

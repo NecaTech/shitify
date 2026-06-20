@@ -1,35 +1,64 @@
-# Scope
+# Tests
 
-Tests Vitest, Testing Library et setup global. Hérite des règles globales du root
-`AGENT.md`. Les tests E2E Playwright vivent dans `e2e/`.
+## Purpose
 
-# Must
+Tests Vitest, Testing Library et setup global. Les tests E2E Playwright vivent
+dans `e2e/`. Ce dossier porte aussi le socle minimum réutilisable du
+boilerplate.
+
+## Safe Edit Surface
+
+Agents may safely:
+
+- add behavior tests under `tests/features/<feature>/`;
+- add script guard tests under `tests/scripts/`;
+- add suite-quality tests under `tests/quality/`;
+- add fictive fixtures/factories when they clarify behavior.
+
+Agents must not:
+
+- copy client-specific domain tests into the boilerplate;
+- use real client data, production URLs, secrets, or provider ids;
+- weaken assertions to hide regressions;
+- commit `.only` or `.skip` as a shortcut.
+
+## Must
 
 - Tester le comportement, pas les détails privés d'implémentation.
-- Garder les tests proches du domaine dans `tests/features/<feature>/`.
+- Garder les tests proches de la couche concernée.
+- Actions : tester validation Zod, `ActionResult<T>`, erreurs retournées et ordre
+  validation/session quand le contrat l'exige.
 - Services : mock strict des repositories avec `vi.mock`.
 - Repositories unitaires : mock de `@/lib/db`.
-- Actions : tester validation Zod, `ActionResult<T>`, erreurs retournées.
+- Scripts : exécuter le script via un processus isolé avec env fictif explicite.
 - Composants : queries accessibles (`getByRole`, `getByLabelText`, `getByText`).
 - Proxy : tester routes protégées, routes auth, cas avec/sans cookie et anti-boucle.
 - E2E : couvrir les workflows critiques sans dépendre d'une DB prod, staging ou partagée.
 
-# Must not
+## Machine-Enforced Rules
 
-- Ne jamais dépendre d'une DB production, staging ou DB partagée pilot/staging.
-- Ne jamais utiliser de données client réelles.
-- Ne jamais faire passer un test en codant une valeur spéciale dans l'implémentation.
-- Ne jamais ignorer un test cassé avec `.skip` sans justification explicite.
-- Ne jamais modifier une assertion pour cacher une régression sans expliquer le changement de contrat.
+- `pnpm test` exécute le socle Vitest.
+- `tests/quality/test-discipline.test.ts` refuse les tests focalisés `.only` et
+  les tests ignorés `.skip`.
+- `tests/scripts/assert-safe-db-env.test.ts` verrouille les garde-fous DB/env.
 
-# Patterns
+## Not Enforced Yet
+
+- Obligation automatique de créer un test de non-régression pour chaque bugfix.
+- Détection automatique des données client réelles dans les fixtures.
+
+## Patterns
 
 - Fixtures/factories fictives et lisibles comme scénarios métier.
 - Un test doit être compréhensible sans ouvrir l'implémentation.
 - Ne pas tester les classes Tailwind sauf variants critiques.
+- Quand un apprentissage vient d'un projet client, remonter la règle abstraite,
+  pas le nom de feature, statut, route ou champ propriétaire.
 
-# Checks
+## Checks
 
 - `pnpm test`
+- `pnpm typecheck` quand des tests TypeScript sont ajoutés ou modifiés.
+- `pnpm lint` quand les mocks/imports changent.
 - `pnpm test:e2e` pour les smoke tests runtime avant livraison.
 - `pnpm test:coverage` quand le changement touche une surface partagée.
