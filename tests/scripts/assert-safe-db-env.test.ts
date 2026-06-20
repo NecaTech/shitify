@@ -2,18 +2,22 @@
 
 import { describe, expect, it } from "vitest";
 import { spawnSync } from "node:child_process";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 const repoRoot = process.cwd();
 const scriptPath = join(repoRoot, "scripts/assert-safe-db-env.ts");
+const tsxBin = join(repoRoot, "node_modules/.bin/tsx");
 
 function runGuard(
   operation: string,
   env: Record<string, string | undefined>,
   args: string[] = [],
+  cwd = repoRoot,
 ) {
-  return spawnSync("pnpm", ["exec", "tsx", scriptPath, operation, ...args], {
-    cwd: repoRoot,
+  return spawnSync(tsxBin, [scriptPath, operation, ...args], {
+    cwd,
     env: {
       ...process.env,
       APP_ENV: "dev",
@@ -47,12 +51,24 @@ describe("safe database environment guard", () => {
   });
 
   it("requires explicit confirmation before pulling production env into .env.local", () => {
-    const result = runGuard("pull-env", {}, ["--pull-environment=production"]);
+    const cwd = mkdtempSync(join(tmpdir(), "boilerplate-db-guard-"));
+    writeFileSync(join(cwd, ".env.local"), "APP_ENV=dev\n");
 
-    expect(result.status).toBe(1);
-    expect(result.stderr).toContain(
-      "pull-env production can overwrite .env.local",
-    );
+    try {
+      const result = runGuard(
+        "pull-env",
+        {},
+        ["--pull-environment=production"],
+        cwd,
+      );
+
+      expect(result.status).toBe(1);
+      expect(result.stderr).toContain(
+        "pull-env production can overwrite .env.local",
+      );
+    } finally {
+      rmSync(cwd, { recursive: true, force: true });
+    }
   });
 
   it("accepts production env pull only with explicit confirmation", () => {
