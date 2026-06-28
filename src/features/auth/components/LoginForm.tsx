@@ -1,13 +1,19 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { authClient } from "@/lib/auth/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { localLoginAction } from "../actions";
 
-export function LoginForm() {
+type LoginFormProps = {
+  localAuthEnabled?: boolean;
+};
+
+export function LoginForm({ localAuthEnabled = false }: LoginFormProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -18,6 +24,13 @@ export function LoginForm() {
     setError(null);
 
     startTransition(async () => {
+      const redirectTo = searchParams.get("redirect") || "/dashboard";
+      if (localAuthEnabled) {
+        const result = await localLoginAction({ email, password, redirectTo });
+        if (!result.success) setError(result.error);
+        return;
+      }
+
       const { error } = await authClient.signIn.email({ email, password });
 
       if (error) {
@@ -25,7 +38,7 @@ export function LoginForm() {
         return;
       }
 
-      router.push("/dashboard");
+      router.push(redirectTo);
       router.refresh();
     });
   }

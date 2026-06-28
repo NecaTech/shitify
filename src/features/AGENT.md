@@ -23,7 +23,7 @@ Ce fichier précise les contrats locaux `actions.ts`, `service.ts`, `repository.
 - Ne jamais importer `repository.ts` depuis `page.tsx`, `actions.ts`, `service.ts` ou un composant React.
 - Ne jamais déplacer une règle métier dans `actions.ts` ou `repository.ts` pour résoudre vite une erreur.
 - Ne jamais modifier directement une migration déjà appliquée.
-- Ne jamais utiliser `resource` comme modèle durable d'un domaine stable.
+- Ne jamais réintroduire un modèle CRUD générique (`resource`, `resource_field`, `resource_record`) comme fondation durable.
 
 # Patterns
 
@@ -33,7 +33,8 @@ Ce fichier précise les contrats locaux `actions.ts`, `service.ts`, `repository.
 - Reads repository : `"use cache"`, `cacheTag(...)`, `cacheLife(...)`.
 - Mutations action : `revalidateTag(..., "max")` après écriture.
 - Tests : service avec repositories mockés, actions comme boundaries, repositories avec DB mockée ou base dédiée.
-- Domaine instable : utiliser temporairement `resource`, `resource_field`, `resource_record`, puis migrer vers une feature typée quand il se stabilise.
+- Domaine instable : préférer une feature typée minimale et jeter le code si le modèle change.
+- Nouveau module dashboard : créer une feature typée et l'ajouter à la navigation déclarative.
 
 # Checks
 

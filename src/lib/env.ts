@@ -1,6 +1,12 @@
 import { createEnv } from "@t3-oss/env-nextjs";
 import { z } from "zod";
 
+const optionalEnv = <T extends z.ZodType>(schema: T) =>
+  z.preprocess(
+    (value) => (value === "" ? undefined : value),
+    schema.optional(),
+  );
+
 function toHttpsUrl(value: string | undefined) {
   if (!value) return undefined;
   return value.startsWith("http") ? value : `https://${value}`;
@@ -14,7 +20,10 @@ export const env = createEnv({
   skipValidation:
     !!process.env.SKIP_ENV_VALIDATION && process.env.NODE_ENV !== "production",
   server: {
-    DATABASE_URL: z.string().url(),
+    NODE_ENV: z
+      .enum(["development", "test", "production"])
+      .default("development"),
+    DATABASE_URL: optionalEnv(z.string().url()),
     APP_ENV: z.enum(["dev", "staging", "prod"]),
     CLIENT_SLUG: z
       .string()
@@ -30,6 +39,13 @@ export const env = createEnv({
       ),
     BETTER_AUTH_SECRET: z.string().min(32),
     BETTER_AUTH_URL: z.string().url(),
+    LOCAL_AUTH_ENABLED: z
+      .string()
+      .optional()
+      .transform((value) => value === "true"),
+    FOUNDER_EMAIL: optionalEnv(z.string().email()),
+    FOUNDER_NAME: optionalEnv(z.string().min(1)),
+    FOUNDER_INITIAL_PASSWORD: optionalEnv(z.string().min(12)),
   },
   client: {
     // TODO(init-project): remplacer par z.string().url() sans default une fois le domaine connu
@@ -40,12 +56,17 @@ export const env = createEnv({
       .default("http://localhost:3000"),
   },
   runtimeEnv: {
+    NODE_ENV: process.env.NODE_ENV,
     DATABASE_URL: process.env.DATABASE_URL,
     APP_ENV: process.env.APP_ENV,
     CLIENT_SLUG: process.env.CLIENT_SLUG,
     PROJECT_SLUG: process.env.PROJECT_SLUG,
     BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET,
     BETTER_AUTH_URL: process.env.BETTER_AUTH_URL ?? vercelAppUrl,
+    LOCAL_AUTH_ENABLED: process.env.LOCAL_AUTH_ENABLED,
+    FOUNDER_EMAIL: process.env.FOUNDER_EMAIL,
+    FOUNDER_NAME: process.env.FOUNDER_NAME,
+    FOUNDER_INITIAL_PASSWORD: process.env.FOUNDER_INITIAL_PASSWORD,
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL ?? vercelAppUrl,
   },
 });

@@ -5,6 +5,11 @@ vi.mock("next/cache", () => ({ revalidateTag: vi.fn() }));
 vi.mock("@/lib/logger", () => ({
   logger: { info: vi.fn(), error: vi.fn(), debug: vi.fn() },
 }));
+vi.mock("@/lib/auth/local", () => ({
+  clearLocalAuthSession: vi.fn(),
+  createLocalAuthSession: vi.fn(),
+  isLocalAuthEnabled: vi.fn(() => false),
+}));
 vi.mock("@/lib/auth/server", () => ({ requireSession: vi.fn() }));
 vi.mock("@/features/auth/service", () => ({ updateUserProfile: vi.fn() }));
 
@@ -19,6 +24,7 @@ const user = {
   email: "ada@example.test",
   emailVerified: false,
   image: null,
+  role: "user",
   createdAt: new Date("2026-01-01T00:00:00.000Z"),
   updatedAt: new Date("2026-01-01T00:00:00.000Z"),
 };

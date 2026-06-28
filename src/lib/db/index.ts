@@ -10,6 +10,10 @@ const globalForDb = globalThis as unknown as {
   db?: NeonDatabase<typeof schema>;
 };
 
+if (!env.DATABASE_URL) {
+  throw new Error("DATABASE_URL is required before importing @/lib/db");
+}
+
 const pool =
   globalForDb.pool ?? new Pool({ connectionString: env.DATABASE_URL });
 

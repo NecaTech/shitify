@@ -11,7 +11,10 @@ import { appSchema } from "@/lib/db/app-schema";
 export const membershipRole = appSchema.enum("membership_role", [
   "owner",
   "admin",
-  "member",
+  "manager",
+  "staff",
+  "editor",
+  "viewer",
 ]);
 
 export const workspace = appSchema.table(
@@ -40,7 +43,7 @@ export const workspaceMembership = appSchema.table(
     userId: text("user_id")
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
-    role: membershipRole("role").notNull().default("member"),
+    role: membershipRole("role").notNull().default("viewer"),
     isActive: boolean("is_active").notNull().default(true),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),

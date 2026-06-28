@@ -20,6 +20,7 @@ export const user = appSchema.table("user", {
     .defaultNow()
     .$onUpdate(() => /* @__PURE__ */ new Date())
     .notNull(),
+  role: text("role").default("user").notNull(),
 });
 
 export const session = appSchema.table(

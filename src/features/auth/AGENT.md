@@ -5,6 +5,7 @@
 - Feature de référence pour le flux `actions → service → repository`.
 - Gère le profil utilisateur applicatif, pas la configuration Better Auth globale.
 - Les tables Better Auth restent dans `src/lib/db/auth-schema.ts`.
+- Le rôle plateforme minimal est `founder | user`; il ne remplace pas les rôles workspace.
 
 ## Frontière
 
@@ -15,6 +16,7 @@
 
 ## Anti-contournement
 
-- Ne jamais hardcoder un utilisateur admin, un email privilégié ou un rôle implicite dans cette feature.
+- Ne jamais hardcoder un utilisateur founder/admin, un email privilégié ou un rôle implicite dans cette feature.
 - Ne jamais contourner Better Auth en écrivant directement des cookies/session depuis une action.
-- Si un besoin de rôles apparaît, créer un modèle explicite (`workspace`, `member`, `role`) et documenter la règle.
+- Ne jamais créer de hiérarchie globale `admin/manager/staff/editor/viewer` dans `user.role`.
+- Les rôles client restent dans `workspace_membership`.

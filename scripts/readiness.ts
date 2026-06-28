@@ -85,6 +85,10 @@ function referencesProductionDatabase(content: string) {
   );
 }
 
+function isDbGuardFixture(path: string) {
+  return path === "tests/scripts/assert-safe-db-env.test.ts";
+}
+
 function addBoundaryCheck(name: string, violations: string[]) {
   add({
     name,
@@ -202,6 +206,7 @@ function checkArchitectureBoundaries() {
 
   const processEnvViolations = sourceFiles.filter((path) => {
     if (!read(path).includes("process.env")) return false;
+    if (isDbGuardFixture(path)) return false;
     if (path === "src/lib/env.ts") return false;
     if (path === "src/lib/db/index.ts") return false;
     if (path === "src/lib/db/schema-name.ts") return false;
@@ -237,7 +242,10 @@ function checkArchitectureBoundaries() {
 
   const prodDbTestViolations = listFiles("tests", (path) =>
     /\.(test|spec)\.(ts|tsx)$/.test(path),
-  ).filter((path) => referencesProductionDatabase(read(path)));
+  ).filter(
+    (path) =>
+      !isDbGuardFixture(path) && referencesProductionDatabase(read(path)),
+  );
   addBoundaryCheck(
     "Architecture: tests avoid prod/shared DB",
     prodDbTestViolations,

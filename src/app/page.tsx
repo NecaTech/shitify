@@ -19,6 +19,14 @@ export default async function Home() {
       <div className="bg-card border-border w-full max-w-2xl rounded-xl border p-8 shadow-sm">
         <h2 className="mb-6 text-xl font-semibold">Démarrage post-clonage</h2>
 
+        <div className="border-border bg-muted/40 mb-6 rounded-lg border p-4 text-sm">
+          <p className="font-medium">Phase 1 - dev local</p>
+          <p className="text-muted-foreground mt-1">
+            Commencer par le dashboard local sans DB client. La phase staging
+            démarre seulement après création et configuration de l&apos;URL DB.
+          </p>
+        </div>
+
         <ol className="space-y-6">
           <Step number={1} title="Installer les dépendances">
             <Code>pnpm install</Code>
@@ -40,8 +48,8 @@ export default async function Home() {
             </p>
             <ul className="text-muted-foreground mt-2 space-y-1 text-sm">
               <li>
-                <code className="text-foreground">DATABASE_URL</code> — URL
-                PostgreSQL Neon (format <code>postgresql://...</code>)
+                <code className="text-foreground">DATABASE_URL</code> — laisser
+                vide en dev, renseigner à partir du staging
               </li>
               <li>
                 <code className="text-foreground">BETTER_AUTH_SECRET</code> —
@@ -55,23 +63,46 @@ export default async function Home() {
                 <code className="text-foreground">NEXT_PUBLIC_APP_URL</code> —
                 même URL (côté client)
               </li>
+              <li>
+                <code className="text-foreground">FOUNDER_EMAIL</code>,{" "}
+                <code className="text-foreground">FOUNDER_NAME</code> et{" "}
+                <code className="text-foreground">
+                  FOUNDER_INITIAL_PASSWORD
+                </code>{" "}
+                — requis pour le seed founder
+              </li>
+              <li>
+                <code className="text-foreground">LOCAL_AUTH_ENABLED</code> —
+                permet la connexion locale du boilerplate sans DB client
+              </li>
             </ul>
           </Step>
 
-          <Step number={4} title="Appliquer les migrations">
-            <Code>pnpm db:migrate</Code>
+          <Step number={4} title="Ouvrir le dashboard local">
+            <Code>pnpm dev</Code>
             <p className="text-muted-foreground mt-2 text-sm">
-              Applique la migration initiale : auth, schémas génériques et CRUD
-              configurable.
+              Avec{" "}
+              <code className="text-foreground">LOCAL_AUTH_ENABLED=true</code>,
+              se connecter à <code className="text-foreground">/login</code>{" "}
+              avec les variables founder locales pour accéder au Pilote.
             </p>
           </Step>
 
-          <Step number={5} title="Démarrer le serveur de développement">
-            <Code>pnpm dev</Code>
+          <Step number={5} title="Générer et appliquer les migrations">
+            <Code>pnpm db:generate && pnpm db:migrate</Code>
             <p className="text-muted-foreground mt-2 text-sm">
-              Cette page disparaît automatiquement une fois que vous avez
-              remplacé <code className="text-foreground">src/app/page.tsx</code>{" "}
-              par votre landing page.
+              Phase 2 - staging : à faire quand le projet dispose d&apos;une DB
+              Neon. Génère la baseline Drizzle du projet cloné, puis
+              l&apos;applique à la base ciblée.
+            </p>
+          </Step>
+
+          <Step number={6} title="Seeder le founder DB">
+            <Code>pnpm db:seed</Code>
+            <p className="text-muted-foreground mt-2 text-sm">
+              Phase 2 - staging : crée ou met à jour le compte founder et le
+              workspace initial sans ajouter le founder comme membre du
+              workspace.
             </p>
           </Step>
         </ol>

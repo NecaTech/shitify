@@ -11,6 +11,7 @@ boilerplate.
 Agents may safely:
 
 - add behavior tests under `tests/features/<feature>/`;
+- add reusable hook behavior tests under `tests/hooks/`;
 - add script guard tests under `tests/scripts/`;
 - add suite-quality tests under `tests/quality/`;
 - add fictive fixtures/factories when they clarify behavior.
@@ -32,6 +33,11 @@ Agents must not:
 - Repositories unitaires : mock de `@/lib/db`.
 - Scripts : exécuter le script via un processus isolé avec env fictif explicite.
 - Composants : queries accessibles (`getByRole`, `getByLabelText`, `getByText`).
+- Hooks : tester l'état observable, les callbacks publics et les fakes navigateur,
+  jamais les détails internes.
+- Médias : quand un composant affiche une URL same-origin, signée ou servie par
+  route applicative, ajouter un test DOM qui vérifie que l'URL rendue reste
+  celle fournie par l'appelant.
 - Proxy : tester routes protégées, routes auth, cas avec/sans cookie et anti-boucle.
 - E2E : couvrir les workflows critiques sans dépendre d'une DB prod, staging ou partagée.
 
@@ -40,6 +46,10 @@ Agents must not:
 - `pnpm test` exécute le socle Vitest.
 - `tests/quality/test-discipline.test.ts` refuse les tests focalisés `.only` et
   les tests ignorés `.skip`.
+- `tests/quality/ui-media-url-boundary.test.ts` protège les primitives UI contre
+  la réécriture implicite des URLs média fournies par l'appelant.
+- `tests/hooks/use-upload-batch.test.tsx` garantit les uploads par lot avec état
+  par fichier, retry des échecs uniquement et limite de concurrence.
 - `tests/scripts/assert-safe-db-env.test.ts` verrouille les garde-fous DB/env.
 
 ## Not Enforced Yet

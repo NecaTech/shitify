@@ -33,7 +33,7 @@ et migrations. Hérite du root `AGENT.md` et de `src/lib/AGENT.md`.
 - Tables SQL : singulier `snake_case`.
 - Colonnes de relation : suffixe `_id`.
 - Index : `<table>_<colonnes>_idx`.
-- Tables configurables : namespace `resource`, `resource_field`, `resource_record`.
+- Ne pas ajouter de nouveau namespace CRUD générique. Les modules durables passent par des features typées.
 - Évolution compatible : ajouter table, colonne nullable/default, backfill avant `not null`.
 - Suppression : phase de dépréciation, arrêt lecture/écriture, puis migration.
 - Better Auth : `auth-schema.generated.ts` est la sortie brute du CLI ; `auth-schema.ts`

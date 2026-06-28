@@ -23,6 +23,7 @@ const mockUser = {
   email: "alice@example.com",
   emailVerified: false,
   image: null,
+  role: "user",
   createdAt: new Date(),
   updatedAt: new Date(),
 };

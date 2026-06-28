@@ -2,8 +2,8 @@
 
 ## Purpose
 
-Contrats de la feature auth côté services et actions serveur, sans dépendre de
-Better Auth réel.
+Contrats de la feature auth côté services, actions serveur et helpers serveur,
+sans dépendre de Better Auth réel.
 
 ## Safe Edit Surface
 
@@ -12,6 +12,8 @@ Agents may safely:
 - mocker `@/features/auth/repository`, `@/features/auth/service`,
   `@/lib/auth/server`, `next/cache` et `server-only`;
 - ajouter des tests de validation/action autour de `ActionResult<T>`;
+- ajouter des tests de helpers serveur auth autour de `requireSession()` et
+  `getOptionalSession()`;
 - ajouter des fixtures fictives Better Auth complètes quand les types l'exigent.
 
 Agents must not:
@@ -25,6 +27,8 @@ Agents must not:
 - Couvrir les règles du service auth avec repository mocké strictement.
 - Couvrir les actions auth avec validation Zod, session requise, erreur retournée
   et revalidation cache observable.
+- Couvrir `requireSession()` avec session DB complète, redirection login qui
+  conserve `x-current-path`, et absence de redirection pour `getOptionalSession()`.
 - Vérifier les erreurs métier attendues quand un utilisateur est absent.
 - Si le contrat change, mettre à jour le test et la règle de feature ensemble.
 

@@ -1,0 +1,128 @@
+# NecaTech Boilerplate
+
+This context defines the stable vocabulary for the reusable application
+boilerplate. One project represents one client application and one client
+organization, while technical ownership stays outside client governance.
+
+## Language
+
+**Founder**:
+The global technical owner or maintainer of the application. A **Founder** sits
+above client roles and workspace membership.
+_Avoid_: Workspace owner, client admin, seed admin
+
+**Application Role**:
+A global user role reserved for platform-level authority, independently of
+workspace membership. The boilerplate keeps this category intentionally narrow.
+_Avoid_: Workspace role, membership role
+
+**User**:
+The default application role for a person who has no platform-level authority.
+Client permissions for a **User** come from workspace membership.
+_Avoid_: Application admin, global member
+
+**Workspace Role**:
+A role scoped to one workspace membership. A **Workspace Role** governs client
+collaboration inside a specific workspace and does not grant global technical
+authority.
+_Avoid_: Application role, global role
+
+**Trusted Maintenance Procedure**:
+A platform-controlled operation allowed to manage platform authority. Client
+workspace roles are never trusted maintenance procedures.
+_Avoid_: Client administration, workspace management
+
+**Owner**:
+The highest client-side workspace role. An **Owner** governs a client workspace
+but does not outrank a **Founder**.
+_Avoid_: Founder, platform owner
+
+**Admin**:
+A client-side workspace role below **Owner** and above operational workspace
+roles.
+_Avoid_: Founder, application admin, global admin
+
+**Manager**:
+A client-side workspace role below **Admin** and above execution roles.
+_Avoid_: Admin, founder
+
+**Staff**:
+A client-side workspace role for internal operational contributors.
+_Avoid_: Manager, editor
+
+**Editor**:
+A client-side workspace role for content or data contribution.
+_Avoid_: Staff, viewer
+
+**Viewer**:
+The lowest client-side workspace role, intended for read-only access.
+_Avoid_: Guest, member
+
+**Client Organization**:
+The organization represented by a project created from the boilerplate. In the
+boilerplate model, one project corresponds to one client organization.
+_Avoid_: Tenant, account, platform organization
+
+**Initial Workspace**:
+The first generic workspace created for a project. It represents the client
+organization but does not make the **Founder** a workspace member.
+_Avoid_: Founder workspace, platform workspace
+
+**Pilote**:
+The dashboard home view. **Pilote** is the entry point for steering the private
+space, not a separate client business module and not a project status.
+_Avoid_: Home page, landing page, client module, pilot project
+
+**Member Invitation**:
+The intended onboarding path for future client members: an authorized user
+creates a member with minimal identity information, then the invited person
+activates access through a trusted email link.
+_Avoid_: Public signup, hardcoded password, demo account
+
+## Flagged Ambiguities
+
+**Pilote vs. pilot project**:
+**Pilote** names the dashboard home view. A pilot project is a separate business
+arrangement and must not be introduced into boilerplate UI copy.
+
+## Example Dialogue
+
+Dev: "Should the founder be added as an owner to every workspace?"
+
+Domain expert: "No. The founder is an application-level authority, not a
+workspace member. Workspace roles remain for client governance."
+
+Dev: "Should admin be a global role too?"
+
+Domain expert: "No. Client administration belongs to workspace roles. The global
+role stays reserved for platform authority such as the founder."
+
+Dev: "Is owner the same as founder?"
+
+Domain expert: "No. Owner is a client workspace role. Founder is platform-level
+technical authority."
+
+Dev: "Should the founder be a member of the initial workspace?"
+
+Domain expert: "No. The initial workspace represents the client organization.
+The founder stays outside workspace membership."
+
+Dev: "Can a workspace owner demote the founder?"
+
+Domain expert: "No. Workspace roles administer client membership only. Platform
+roles are managed by founders or trusted maintenance procedures."
+
+Dev: "Is Pilote a separate route from the dashboard home?"
+
+Domain expert: "No. Pilote is the dashboard home. Other dashboard sections live
+on separate routes."
+
+Dev: "Should the Pilote page mention that the project is a pilot project?"
+
+Domain expert: "No. The shared word is misleading here. Pilote is a dashboard
+view, not a project status."
+
+Dev: "Should a client member receive a hardcoded initial password?"
+
+Domain expert: "No. Future member onboarding should use invitations or trusted
+email links, configured per client project."

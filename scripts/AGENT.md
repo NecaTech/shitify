@@ -5,7 +5,7 @@ Scripts Node purs hors runtime Next.js :
 - `init-project.ts` : initialisation post-clonage du template.
 - `vercel-bootstrap.ts` : liaison Vercel, env vars, déploiement reproductible.
 - `readiness.ts` : checks statiques et readiness.
-- `seed.ts` : seed fictif projet.
+- `seed.ts` : seed founder officiel et workspace initial.
 - `assert-safe-db-env.ts` : garde-fou central des commandes DB/Vercel env.
 
 Hérite des règles globales du root `AGENT.md`. Ce fichier précise uniquement les
@@ -39,8 +39,10 @@ contraintes locales des scripts.
 # Patterns
 
 - Vercel CLI : garder le cache local dans `.vercel-cache/`.
-- Seed : données fictives uniquement. Les defaults `admin@example.local`, mot de passe local documenté et nom `Admin` sont tolérés uniquement dans `seed.ts` pour le développement.
+- Seed : un seul mécanisme officiel, le seed Founder. Les variables sensibles sont obligatoires et aucun mot de passe ne doit être codé en dur.
 - Seed : préférer `insert ... on conflict` ou une logique idempotente équivalente.
+- Seed : ne jamais afficher le mot de passe ni le hash dans les logs.
+- Seed : ne réinitialiser un mot de passe founder existant qu'avec une intention explicite (`FOUNDER_RESET_PASSWORD=true`).
 - Maintenance DB partagée : commande explicite, documentée, idempotente et non destructive.
 - Commandes DB : passer par `assert-safe-db-env.ts <operation>` avant Drizzle, seed ou pull Vercel.
 - Migration/push : créer le schema PostgreSQL applicatif avec `--ensure-schema` avant Drizzle.

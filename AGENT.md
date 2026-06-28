@@ -15,11 +15,11 @@ garder les modifications dans la bonne couche.
 5. Si la demande traverse plusieurs domaines, lire chaque `AGENT.md` local concerné
    avant de modifier.
 
-Exemple : modifier `src/features/crud/actions.ts` implique de lire :
+Exemple : modifier `src/features/auth/actions.ts` implique de lire :
 
 - `AGENT.md`
 - `src/features/AGENT.md`
-- `src/features/crud/AGENT.md`
+- `src/features/auth/AGENT.md`
 
 ## Détection Boilerplate
 
@@ -44,18 +44,24 @@ boilerplate sans demander d'initialisation.
 - Si une règle est incomplète ou contradictoire, corriger le fichier `AGENT.md`
   concerné dans le même changement que la correction technique.
 
-## Modes projet
+## Phases projet
 
-Ces modes sont documentaires pour l'instant. Ne pas ajouter de blocage runtime sans
-demande explicite.
+Le cycle post-clonage officiel est documenté dans
+`docs/development-phases.md`. Ne pas réintroduire une obligation de DB en phase
+`dev`.
 
-- `pilot` : itération rapide, DB partagée local/preview/prod autorisée si assumée.
-- `staging` : validation client, DB partagée autorisée si l'équipe l'accepte explicitement.
-- `production` : accès prod autorisé pour maintenance, diagnostic, migration et support,
-  mais pas comme environnement de développement quotidien.
+- `dev` : développement initial après clonage. `LOCAL_AUTH_ENABLED=true` peut
+  ouvrir `/dashboard` avec une session locale signée et les variables founder de
+  `.env.local`. `DATABASE_URL` n'est pas obligatoire.
+- `staging` : première phase avec DB client réelle. `DATABASE_URL` est configuré,
+  `LOCAL_AUTH_ENABLED=false`, les migrations Drizzle sont générées/appliquées et
+  `pnpm db:seed` crée le founder DB.
+- `production` : projet jugé livrable. `APP_ENV=prod`,
+  `LOCAL_AUTH_ENABLED=false`, Better Auth DB-backed obligatoire, warnings
+  readiness production revus.
 
-TODO(init-project): avant une vraie production client, séparer les environnements DB
-ou documenter formellement l'exception d'exploitation.
+TODO(init-project): avant une vraie production client, séparer les environnements
+DB ou documenter formellement l'exception d'exploitation.
 
 ## Routage par zone
 
@@ -63,6 +69,9 @@ ou documenter formellement l'exception d'exploitation.
 | ------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
 | Racine, package, README, config projet      | `AGENT.md`                                                                                             |
 | Documentation                               | `docs/AGENT.md`                                                                                        |
+| ADR                                         | `docs/AGENT.md`, `docs/adr/AGENT.md`                                                                   |
+| Tickets d'exécution                         | `docs/AGENT.md`, `docs/tickets/AGENT.md`                                                               |
+| Rapports d'exécution                        | `docs/AGENT.md`, `docs/reports/AGENT.md`                                                               |
 | Assets statiques publics                    | `public/AGENT.md`                                                                                      |
 | Scripts Node, init, readiness, seed, Vercel | `scripts/AGENT.md`                                                                                     |
 | Routes App Router                           | `src/app/AGENT.md`                                                                                     |
@@ -76,7 +85,7 @@ ou documenter formellement l'exception d'exploitation.
 | Layout components                           | `src/components/AGENT.md`, `src/components/layout/AGENT.md`                                            |
 | Features métier                             | `src/features/AGENT.md`, puis `src/features/<feature>/AGENT.md` si présent                             |
 | Auth feature                                | `src/features/AGENT.md`, `src/features/auth/AGENT.md`, `src/lib/auth/AGENT.md`                         |
-| CRUD configurable                           | `src/features/AGENT.md`, `src/features/crud/AGENT.md`                                                  |
+| Ancien CRUD configurable                    | `src/features/AGENT.md`, `docs/adr/0001-dashboard-modules-use-typed-features.md`                       |
 | Dashboard feature                           | `src/features/AGENT.md`, `src/features/dashboard/AGENT.md`                                             |
 | Booking                                     | `src/features/AGENT.md`, `src/features/booking/AGENT.md`                                               |
 | Commerce                                    | `src/features/AGENT.md`, `src/features/commerce/AGENT.md`                                              |
@@ -92,6 +101,7 @@ ou documenter formellement l'exception d'exploitation.
 | Hooks React                                 | `src/hooks/AGENT.md`                                                                                   |
 | Types transverses                           | `src/types/AGENT.md`                                                                                   |
 | Tests                                       | `tests/AGENT.md`                                                                                       |
+| Tests de hooks                              | `tests/AGENT.md`, `tests/hooks/AGENT.md`, `src/hooks/AGENT.md`                                         |
 | Tests de features                           | `tests/AGENT.md`, `tests/features/AGENT.md`                                                            |
 | Tests auth                                  | `tests/AGENT.md`, `tests/features/AGENT.md`, `tests/features/auth/AGENT.md`                            |
 | Tests de scripts                            | `tests/AGENT.md`, `tests/scripts/AGENT.md`, `scripts/AGENT.md`                                         |
@@ -100,6 +110,9 @@ ou documenter formellement l'exception d'exploitation.
 ## Routage par type de tâche
 
 - Initialiser un projet cloné : `scripts/AGENT.md`, `README.md`, `scripts/init-project.ts`.
+- Préparer ou exécuter un ticket local : `docs/AGENT.md`, `docs/tickets/AGENT.md`, puis le ticket ciblé.
+- Rédiger un rapport de ticket : `docs/AGENT.md`, `docs/reports/AGENT.md`, puis le ticket source.
+- Modifier une décision ADR : `docs/AGENT.md`, `docs/adr/AGENT.md`; ne pas réécrire un ADR accepté, créer une nouvelle décision si nécessaire.
 - Déployer ou synchroniser Vercel : `scripts/AGENT.md`, `scripts/vercel-bootstrap.ts`, `.env.example`, `src/lib/env.ts`.
 - Ajouter une route protégée : `src/app/AGENT.md`, `src/app/(authenticated)/AGENT.md`, `src/proxy.ts`.
 - Ajouter une feature typée : `src/features/AGENT.md`, `src/lib/db/AGENT.md`, puis créer `src/features/<feature>/AGENT.md` si la feature a un contrat propre.
@@ -109,6 +122,7 @@ ou documenter formellement l'exception d'exploitation.
 - Corriger un bug : lire les agents de la couche suspecte avant patch.
 - Ajouter ou corriger des tests : `tests/AGENT.md`, puis le sous-dossier local.
 - Promouvoir un apprentissage projet en test boilerplate : abstraire le comportement, exclure le métier client, puis ajouter le test sous `tests/features/`, `tests/scripts/` ou `tests/quality/` selon la couche vérifiée.
+- Promouvoir un apprentissage projet en hook partagé : abstraire le comportement, exclure le métier client, puis couvrir le hook sous `tests/hooks/`.
 
 ## Règles d'architecture globales
 
@@ -130,6 +144,9 @@ ou documenter formellement l'exception d'exploitation.
 - Socle minimum de tests : actions serveur, garde-fous scripts/env et discipline de suite doivent rester exécutables par `pnpm test`.
 - Auth protégée : `requireSession()` obligatoire côté serveur ; le proxy ne suffit jamais.
 - Proxy/auth : conserver le contrat anti-boucle `redirect` + `x-current-path`.
+- Dashboard natif : `/dashboard` est le Pilote canonique ; ne pas créer `/dashboard/pilote`.
+- Modules dashboard : pas de CRUD générique durable ; ajouter des sections via features typées et navigation dashboard déclarative.
+- Rôles : `user.role` est réservé à l'autorité plateforme (`founder` ou `user`) ; les rôles client vivent dans `workspace_membership`.
 
 Flux autorisés :
 

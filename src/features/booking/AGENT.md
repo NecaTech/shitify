@@ -8,5 +8,5 @@
 
 ## Anti-contournement
 
-- Ne pas stocker des réservations stables dans le CRUD configurable pour éviter une migration.
+- Ne pas stocker des réservations dans un modèle générique pour éviter une migration.
 - Ne pas hardcoder de créneaux, statuts ou règles de disponibilité client dans le schéma.

@@ -16,7 +16,22 @@ Production-ready Next.js fullstack starter — prêt à cloner et démarrer un p
 | Déploiement     | Vercel (Fluid Compute)     |
 | Package manager | pnpm                       |
 
-## Démarrage post-clonage
+## Cycle de développement après clonage
+
+Le boilerplate suit trois phases explicites pour un projet client cloné depuis ce
+socle. Le contrat détaillé vit dans
+[docs/development-phases.md](docs/development-phases.md).
+
+| Phase        | Moment                                     | Auth dashboard               | DB requise      |
+| ------------ | ------------------------------------------ | ---------------------------- | --------------- |
+| `dev`        | Développement initial après clonage        | Session locale signée        | Non             |
+| `staging`    | DB client créée et URL configurée          | Better Auth + Drizzle + Neon | Oui             |
+| `production` | Projet jugé livrable et prêt à être exposé | Better Auth + Drizzle + Neon | Oui, production |
+
+### Phase 1 - Dev local sans DB client
+
+Objectif : commencer à développer immédiatement après clonage, avant la création
+de l'URL DB client.
 
 ### 1. Installer les dépendances
 
@@ -32,38 +47,104 @@ pnpm init-project
 
 Configure le nom du projet, l'URL publique, le dépôt distant optionnel, crée `.env.local`, génère `BETTER_AUTH_SECRET`, et adapte les métadonnées du boilerplate.
 
-### 3. Configurer l'environnement
+### 3. Configurer l'environnement dev
 
 Vérifier les variables dans `.env.local` :
 
-| Variable              | Obligatoire    | Description                                               |
-| --------------------- | -------------- | --------------------------------------------------------- |
-| `DATABASE_URL`        | Oui            | URL PostgreSQL Neon (pooled, `postgresql://...`)          |
-| `APP_ENV`             | Oui            | Environnement applicatif : `dev`, `staging` ou `prod`     |
-| `CLIENT_SLUG`         | Oui            | Slug client pour le schema DB PostgreSQL                  |
-| `PROJECT_SLUG`        | Oui            | Slug projet pour le schema DB PostgreSQL                  |
-| `BETTER_AUTH_SECRET`  | Oui            | Secret aléatoire ≥ 32 car. (`openssl rand -base64 32`)    |
-| `BETTER_AUTH_URL`     | Non sur Vercel | URL publique de l'app — fallback sur l'URL système Vercel |
-| `NEXT_PUBLIC_APP_URL` | Non            | Même URL (métadonnées OG). Fallback Vercel puis localhost |
+| Variable                   | Obligatoire    | Description                                               |
+| -------------------------- | -------------- | --------------------------------------------------------- |
+| `DATABASE_URL`             | Non en dev     | URL PostgreSQL Neon, requise à partir du staging          |
+| `APP_ENV`                  | Oui            | Environnement applicatif : `dev`, `staging` ou `prod`     |
+| `CLIENT_SLUG`              | Oui            | Slug client pour le schema DB PostgreSQL                  |
+| `PROJECT_SLUG`             | Oui            | Slug projet pour le schema DB PostgreSQL                  |
+| `BETTER_AUTH_SECRET`       | Oui            | Secret aléatoire ≥ 32 car. (`openssl rand -base64 32`)    |
+| `BETTER_AUTH_URL`          | Non sur Vercel | URL publique de l'app — fallback sur l'URL système Vercel |
+| `FOUNDER_EMAIL`            | Seed founder   | Email du compte founder initial                           |
+| `FOUNDER_NAME`             | Seed founder   | Nom affiché du compte founder                             |
+| `FOUNDER_INITIAL_PASSWORD` | Seed founder   | Mot de passe initial, jamais affiché par le seed          |
+| `LOCAL_AUTH_ENABLED`       | Dev local      | `true` pour ouvrir le dashboard sans DB client            |
+| `FOUNDER_RESET_PASSWORD`   | Non            | Mettre à `true` pour remplacer le mot de passe existant   |
+| `INITIAL_WORKSPACE_NAME`   | Non            | Nom du workspace initial, sinon dérivé de `PROJECT_SLUG`  |
+| `INITIAL_WORKSPACE_SLUG`   | Non            | Slug du workspace initial, sinon dérivé de `PROJECT_SLUG` |
+| `NEXT_PUBLIC_APP_URL`      | Non            | Même URL (métadonnées OG). Fallback Vercel puis localhost |
 
-> `pnpm init-project` remplit `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL` et `NEXT_PUBLIC_APP_URL`. Sur Vercel, `BETTER_AUTH_URL` et `NEXT_PUBLIC_APP_URL` peuvent aussi être déduites de `VERCEL_PROJECT_PRODUCTION_URL` / `VERCEL_URL` si les variables système Vercel sont exposées. Il reste toujours `DATABASE_URL` à renseigner si elle n'a pas été fournie pendant l'initialisation. `APP_ENV`, `CLIENT_SLUG` et `PROJECT_SLUG` déterminent le schema PostgreSQL applicatif `{CLIENT_SLUG}_{PROJECT_SLUG}_{APP_ENV}`.
+> `pnpm init-project` remplit `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL` et `NEXT_PUBLIC_APP_URL`. Sur Vercel, `BETTER_AUTH_URL` et `NEXT_PUBLIC_APP_URL` peuvent aussi être déduites de `VERCEL_PROJECT_PRODUCTION_URL` / `VERCEL_URL` si les variables système Vercel sont exposées. `APP_ENV`, `CLIENT_SLUG` et `PROJECT_SLUG` déterminent le schema PostgreSQL applicatif `{CLIENT_SLUG}_{PROJECT_SLUG}_{APP_ENV}`.
 
-### 4. Générer puis appliquer la baseline DB
+En phase `dev`, `LOCAL_AUTH_ENABLED=true` permet de se connecter au dashboard
+sans DB client avec `FOUNDER_EMAIL`, `FOUNDER_NAME` et
+`FOUNDER_INITIAL_PASSWORD`. Cette session est signée avec
+`BETTER_AUTH_SECRET`, reste limitée au développement local, et ne remplace pas
+Better Auth pour un projet client connecté à une vraie base.
+
+### 4. Ouvrir le dashboard local
+
+```bash
+pnpm dev
+```
+
+Puis ouvrir `/login` et se connecter avec les variables founder locales. Le
+dashboard `/dashboard` devient le point de départ du développement privé sans
+Neon, sans migration Drizzle et sans seed DB.
+
+### Phase 2 - Staging avec DB client
+
+Objectif : basculer vers le vrai chemin applicatif dès que la DB client existe.
+
+Configurer :
+
+```env
+APP_ENV=staging
+DATABASE_URL=postgresql://...
+LOCAL_AUTH_ENABLED=false
+```
+
+Puis générer et appliquer la baseline DB du projet client :
 
 ```bash
 pnpm db:generate
 pnpm db:migrate
 ```
 
-Le boilerplate ne commit pas de migration initiale concrète. Les migrations Drizzle contiennent le nom réel du schema PostgreSQL ; chaque projet client doit donc générer sa baseline après `pnpm init-project`, une fois `APP_ENV`, `CLIENT_SLUG`, `PROJECT_SLUG` et `DATABASE_URL` configurés.
+Le boilerplate ne commit pas de migration initiale concrète. Les migrations
+Drizzle contiennent le nom réel du schema PostgreSQL ; chaque projet client doit
+donc générer sa baseline après `pnpm init-project`, une fois `APP_ENV`,
+`CLIENT_SLUG`, `PROJECT_SLUG` et `DATABASE_URL` configurés.
 
-### 5. Démarrer le serveur de développement
+Seeder ensuite le founder et le workspace initial :
 
 ```bash
-pnpm dev
+pnpm db:seed
 ```
 
-La page d'accueil affiche le guide de démarrage tant que `src/app/page.tsx` n'a pas été remplacée par votre landing page.
+Le seed officiel crée ou met à jour un seul compte `founder` et le workspace
+initial. Il exige `FOUNDER_EMAIL`, `FOUNDER_NAME` et
+`FOUNDER_INITIAL_PASSWORD`, ne journalise jamais le mot de passe ni son hash, et
+ne crée pas le founder comme membre du workspace. Si le compte founder existe
+déjà, son mot de passe est conservé ; pour le remplacer explicitement, lancer le
+seed avec `FOUNDER_RESET_PASSWORD=true`.
+
+À partir de cette phase, `/login` utilise Better Auth avec la DB. Ne pas garder
+`LOCAL_AUTH_ENABLED=true` pour valider un projet client.
+
+### Phase 3 - Production livrable
+
+Objectif : exposer le projet une fois le niveau livrable atteint.
+
+Configuration attendue :
+
+```env
+APP_ENV=prod
+LOCAL_AUTH_ENABLED=false
+DATABASE_URL=postgresql://...
+BETTER_AUTH_SECRET=...
+BETTER_AUTH_URL=https://...
+NEXT_PUBLIC_APP_URL=https://...
+```
+
+Avant production, revoir les warnings readiness liés à l'email verification, la
+CSP, les domaines externes et la séparation DB. La page d'accueil affiche le
+guide de démarrage tant que `src/app/page.tsx` n'a pas été remplacée par votre
+landing page.
 
 ### Déploiement Vercel reproductible
 
@@ -103,7 +184,10 @@ src/
 │   ├── (authenticated)/              # Route group — toutes les routes protégées
 │   │   ├── layout.tsx                # Appelle requireSession() une seule fois pour le groupe
 │   │   └── dashboard/
-│   │       └── page.tsx              # Page dashboard (à remplacer par le contenu projet)
+│   │       ├── layout.tsx            # Shell dashboard natif
+│   │       ├── page.tsx              # Pilote, accueil privé canonique
+│   │       └── administration/
+│   │           └── page.tsx          # Placeholder initial pour future administration
 │   ├── api/
 │   │   └── auth/
 │   │       └── [...all]/
@@ -136,10 +220,14 @@ src/
 │   ├── booking/schema.ts             # Réservations / rendez-vous
 │   ├── commerce/schema.ts            # Produits, commandes, lignes de commande
 │   ├── contact/schema.ts             # Formulaires de contact / leads
-│   ├── dashboard/                    # Dashboard configurable par projet pilote
-│   │   ├── config.ts                 # Stats, actions, sections modifiables à la volée
+│   ├── dashboard/                    # Shell dashboard natif et navigation déclarative
+│   │   ├── config.ts                 # Liens/groupes dashboard typés
 │   │   └── components/
-│   │       └── DashboardHome.tsx
+│   │       ├── DashboardShell.tsx
+│   │       ├── DashboardNav.tsx
+│   │       ├── DashboardHeader.tsx
+│   │       ├── PiloteHome.tsx
+│   │       └── AdministrationPlaceholder.tsx
 │   ├── notifications/schema.ts       # Notifications utilisateur
 │   ├── uploads/schema.ts             # Fichiers uploadés
 │   └── workspace/schema.ts           # Espaces, membres, rôles
@@ -148,6 +236,8 @@ src/
 │   ├── auth/
 │   │   ├── index.ts                  # Config Better Auth (adapter Drizzle, trustedOrigins, rateLimit) — server-only
 │   │   ├── client.ts                 # Client Better Auth navigateur (useSession, signIn…)
+│   │   ├── local.ts                  # Auth locale signée pour phase dev sans DB client
+│   │   ├── local-cookie.ts           # Nom du cookie local partagé avec le proxy
 │   │   └── server.ts                 # requireSession() / getOptionalSession() — server-only
 │   ├── db/
 │   │   ├── index.ts                  # Instance Drizzle singleton + pool Neon — server-only
@@ -175,7 +265,7 @@ src/
 scripts/
 ├── init-project.ts                   # Initialisation post-clonage
 ├── readiness.ts                      # Vérifications pré-démo/livraison
-├── seed.ts                           # Seeding de la base — à personnaliser par projet
+├── seed.ts                           # Seed founder officiel et workspace initial
 └── vercel-bootstrap.ts               # Liaison Vercel, env vars, déploiement prod
 ```
 
@@ -190,7 +280,7 @@ Chaque couche a une responsabilité unique. Les Server Components `page.tsx` peu
 
 ## Schémas génériques
 
-Le boilerplate inclut des schémas Drizzle réutilisables pour accélérer les projets pilotes :
+Le boilerplate inclut des schémas Drizzle réutilisables pour accélérer les projets clients :
 
 - `workspace` — organisations, espaces de travail, rôles et membres
 - `uploads` — fichiers stockés, visibilité, métadonnées
@@ -198,7 +288,6 @@ Le boilerplate inclut des schémas Drizzle réutilisables pour accélérer les p
 - `contact` — demandes entrantes, leads, messages
 - `booking` — réservations, rendez-vous, statuts
 - `commerce` — produits, commandes, lignes de commande
-- `crud` — ressources, champs et enregistrements configurables après déploiement
 
 Tous les schémas sont exportés depuis `src/lib/db/schema.ts`. Après adaptation à un projet réel :
 
@@ -223,29 +312,33 @@ Conséquence pratique :
 - `pnpm db:generate` crée la baseline locale du projet ;
 - `pnpm db:migrate` l'applique ensuite à la DB ciblée après création du schema par le garde DB.
 
-## Dashboard configurable
+## Dashboard natif
 
-La page `/dashboard` utilise `src/features/dashboard/config.ts`.
+`/dashboard` est le Pilote : l'accueil privé canonique après connexion. Il rend
+un shell dashboard natif avec sidebar desktop, navigation mobile basse, header
+compact, nom utilisateur, badge founder quand `session.user.role` vaut
+`founder`, et action de déconnexion.
 
-Modifier ce fichier permet d'adapter rapidement :
+`/dashboard/administration` existe comme placeholder initial. Il prépare la zone
+où vivront de futures fonctions d'administration, mais il ne crée pas encore de
+membres, n'envoie pas d'invitations et n'intègre pas de provider email.
 
-- les métriques affichées
-- les actions principales
-- les sections de suivi
-- le texte de présentation du pilote
+La navigation dashboard vit dans `src/features/dashboard/config.ts`. Les
+sections futures s'ajoutent avec des routes dédiées et des features typées
+(`schema.ts`, `repository.ts`, `service.ts`, `actions.ts`, `types.ts`), puis une
+entrée de navigation déclarative. Le boilerplate ne fournit plus de CRUD
+configurable comme comportement natif du dashboard.
 
-La page route reste volontairement fine : elle récupère la session, le profil, puis rend `DashboardHome`.
+## Rôles et seed founder
 
-## CRUD configurable après déploiement
+Le rôle global `founder` est une autorité plateforme stockée sur `user.role`.
+Les permissions client restent dans `workspace_membership.role` avec la
+hiérarchie `owner`, `admin`, `manager`, `staff`, `editor`, `viewer`.
 
-La route `/dashboard/crud` permet de créer des ressources métier sans nouvelle migration SQL :
-
-- créer/supprimer une ressource (`clients`, `biens`, `demandes`, `prestations`...)
-- ajouter/supprimer des champs
-- créer/modifier/supprimer des enregistrements
-- stocker les valeurs dans `resource_record.data` (`jsonb`)
-
-Ce CRUD est conçu pour les projets pilotes, les démos ambassadeurs et le prototypage post-déploiement. Il ne doit pas devenir le modèle durable d'un domaine stable. Quand un modèle métier se stabilise, créer une vraie feature dédiée dans `src/features/<nom>/` avec `schema.ts`, `repository.ts`, `service.ts`, `actions.ts` et `types.ts`. Ne jamais stocker de secret ou donnée sensible dans `resource_record.data`.
+`pnpm db:seed` crée ou met à jour le founder et le workspace initial sans faire
+du founder un membre du workspace. Les futures invitations de membres devront
+passer par une feature dédiée et un lien email de confiance ; ce flux n'est pas
+implémenté dans le boilerplate actuel.
 
 ## Scripts
 
@@ -339,6 +432,11 @@ E2E_BASE_URL=https://staging.example.com pnpm test:e2e
 - **Nouvelle feature** — créer `features/<nom>/` en s'inspirant de `features/auth/`, puis ajouter `export * from "@/features/<nom>/schema"` dans `lib/db/schema.ts`
 
 Voir `AGENT.md` pour les règles et conventions complètes.
+
+## Roadmap et tickets
+
+La roadmap d'évolution du boilerplate et ses tickets d'exécution vivent dans
+[`docs/roadmap.md`](docs/roadmap.md).
 
 ## Checklist mise en production
 

@@ -1,11 +1,13 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { getSessionCookie } from "better-auth/cookies";
+import { LOCAL_AUTH_COOKIE_NAME } from "@/lib/auth/local-cookie";
 
 const protectedRoutes = ["/dashboard"] as const;
 const authRoutes = ["/login", "/register"] as const;
 
 export function proxy(request: NextRequest) {
-  const session = getSessionCookie(request);
+  const session =
+    getSessionCookie(request) ?? request.cookies.get(LOCAL_AUTH_COOKIE_NAME);
   const { pathname } = request.nextUrl;
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-current-path", pathname);

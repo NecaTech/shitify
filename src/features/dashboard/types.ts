@@ -1,29 +1,19 @@
-export type DashboardStat = {
+import type { LucideIcon } from "lucide-react";
+
+type DashboardNavBase = {
   label: string;
-  value: string;
-  helper: string;
+  icon: LucideIcon;
+  visible: boolean;
 };
 
-export type DashboardAction = {
-  label: string;
+export type DashboardNavLink = DashboardNavBase & {
+  type: "link";
   href: string;
-  tone: "primary" | "secondary";
 };
 
-export type DashboardSection = {
-  title: string;
-  description: string;
-  items: Array<{
-    label: string;
-    value: string;
-  }>;
+export type DashboardNavGroup = DashboardNavBase & {
+  type: "group";
+  items: DashboardNavLink[];
 };
 
-export type DashboardConfig = {
-  eyebrow: string;
-  title: string;
-  description: string;
-  stats: DashboardStat[];
-  actions: DashboardAction[];
-  sections: DashboardSection[];
-};
+export type DashboardNavItem = DashboardNavLink | DashboardNavGroup;
