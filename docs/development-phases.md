@@ -20,6 +20,8 @@ Use:
 Behavior:
 
 - `/login` accepts the local founder credentials from `.env.local`.
+- the founder can switch the private dashboard between Founder and Admin views
+  without using a second account.
 - The app creates a signed local session cookie using `BETTER_AUTH_SECRET`.
 - `/dashboard` opens without Neon, Drizzle migrations, or `pnpm db:seed`.
 - Better Auth API routes remain inactive in local auth mode.

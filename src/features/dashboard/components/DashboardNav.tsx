@@ -3,16 +3,9 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { dashboardNavigation } from "../config";
+import { getVisibleDashboardLinks } from "../config";
 import type { DashboardNavLink } from "../types";
-
-function visibleLinks() {
-  return dashboardNavigation.flatMap((item) => {
-    if (!item.visible) return [];
-    if (item.type === "link") return [item];
-    return item.items.filter((child) => child.visible);
-  });
-}
+import type { DashboardViewMode } from "../view-mode";
 
 function isActivePath(pathname: string, href: string) {
   if (href === "/dashboard") return pathname === href;
@@ -50,9 +43,13 @@ function NavLink({
   );
 }
 
-export function DashboardSidebar() {
+export function DashboardSidebar({
+  viewMode,
+}: {
+  viewMode: DashboardViewMode;
+}) {
   const pathname = usePathname();
-  const links = visibleLinks();
+  const links = getVisibleDashboardLinks(viewMode);
 
   return (
     <aside className="border-border bg-card fixed inset-y-0 left-0 hidden w-64 border-r lg:flex lg:flex-col">
@@ -77,9 +74,13 @@ export function DashboardSidebar() {
   );
 }
 
-export function DashboardBottomNav() {
+export function DashboardBottomNav({
+  viewMode,
+}: {
+  viewMode: DashboardViewMode;
+}) {
   const pathname = usePathname();
-  const links = visibleLinks();
+  const links = getVisibleDashboardLinks(viewMode);
 
   return (
     <nav

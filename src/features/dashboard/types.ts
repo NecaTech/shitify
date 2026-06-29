@@ -1,9 +1,11 @@
 import type { LucideIcon } from "lucide-react";
+import type { WorkspaceRole } from "@/features/workspace/roles";
 
 type DashboardNavBase = {
   label: string;
   icon: LucideIcon;
   visible: boolean;
+  minimumWorkspaceRole?: WorkspaceRole;
 };
 
 export type DashboardNavLink = DashboardNavBase & {

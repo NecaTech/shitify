@@ -76,6 +76,11 @@ sans DB client avec `FOUNDER_EMAIL`, `FOUNDER_NAME` et
 `BETTER_AUTH_SECRET`, reste limitée au développement local, et ne remplace pas
 Better Auth pour un projet client connecté à une vraie base.
 
+Le founder garde une seule session et peut basculer dans le dashboard entre la
+vue `Founder` et la vue `Admin`. La vue Founder pilote les invariants du
+boilerplate et la progression post-clonage. La vue Admin simule l'expérience du
+plus haut niveau workspace sans exiger un second compte local.
+
 ### 4. Ouvrir le dashboard local
 
 ```bash

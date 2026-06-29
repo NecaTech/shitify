@@ -1,9 +1,13 @@
 import { describe, expect, it } from "vitest";
 import {
+  assignableWorkspaceRoles,
+  canAssignWorkspaceRole,
   canManageWorkspaceRole,
   canWorkspaceRoleManagePlatformRole,
   compareWorkspaceRoles,
+  isAssignableWorkspaceRole,
   isWorkspaceRole,
+  workspaceRoleDefinitions,
   workspaceRoleAtLeast,
   workspaceRoles,
 } from "@/features/workspace/roles";
@@ -22,6 +26,15 @@ describe("workspace role hierarchy", () => {
     expect(isWorkspaceRole("viewer")).toBe(true);
     expect(isWorkspaceRole("founder")).toBe(false);
     expect(isWorkspaceRole("member")).toBe(false);
+    expect(assignableWorkspaceRoles).toEqual([
+      "admin",
+      "manager",
+      "staff",
+      "editor",
+      "viewer",
+    ]);
+    expect(isAssignableWorkspaceRole("admin")).toBe(true);
+    expect(isAssignableWorkspaceRole("owner")).toBe(false);
   });
 
   it("orders workspace roles from owner down to viewer", () => {
@@ -37,6 +50,20 @@ describe("workspace role hierarchy", () => {
     expect(canManageWorkspaceRole("owner", "admin")).toBe(true);
     expect(canManageWorkspaceRole("admin", "owner")).toBe(false);
     expect(canManageWorkspaceRole("manager", "manager")).toBe(false);
+    expect(canAssignWorkspaceRole("admin", "manager")).toBe(true);
+    expect(canAssignWorkspaceRole("admin", "admin")).toBe(false);
+    expect(canAssignWorkspaceRole("manager", "admin")).toBe(false);
+  });
+
+  it("documents each workspace role exposed in founder perspective exploration", () => {
+    for (const workspaceRole of workspaceRoles) {
+      expect(workspaceRoleDefinitions[workspaceRole].label).toEqual(
+        expect.any(String),
+      );
+      expect(workspaceRoleDefinitions[workspaceRole].description).toEqual(
+        expect.any(String),
+      );
+    }
   });
 
   it("never lets workspace roles administer platform roles", () => {

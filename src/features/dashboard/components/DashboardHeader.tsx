@@ -1,10 +1,13 @@
 import { Crown } from "lucide-react";
+import type { DashboardViewMode } from "../view-mode";
+import { DashboardViewSwitch } from "./DashboardViewSwitch";
 import { DashboardLogoutButton } from "./DashboardLogoutButton";
 
 type DashboardHeaderProps = {
   title: string;
   userName: string | null | undefined;
   isFounder: boolean;
+  viewMode: DashboardViewMode;
   localAuthEnabled?: boolean;
 };
 
@@ -12,6 +15,7 @@ export function DashboardHeader({
   title,
   userName,
   isFounder,
+  viewMode,
   localAuthEnabled = false,
 }: DashboardHeaderProps) {
   return (
@@ -25,10 +29,13 @@ export function DashboardHeader({
         </div>
         <div className="flex shrink-0 items-center gap-2">
           {isFounder ? (
-            <span className="border-border bg-muted inline-flex h-8 items-center gap-1.5 rounded-lg border px-2 text-xs font-medium">
-              <Crown aria-hidden="true" className="size-3.5" />
-              Founder
-            </span>
+            <>
+              <DashboardViewSwitch currentView={viewMode} />
+              <span className="border-border bg-muted hidden h-8 items-center gap-1.5 rounded-lg border px-2 text-xs font-medium sm:inline-flex">
+                <Crown aria-hidden="true" className="size-3.5" />
+                Founder
+              </span>
+            </>
           ) : null}
           <DashboardLogoutButton localAuthEnabled={localAuthEnabled} />
         </div>

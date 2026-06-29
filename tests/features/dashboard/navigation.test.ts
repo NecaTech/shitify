@@ -3,6 +3,7 @@ import { join } from "path";
 import { describe, expect, it } from "vitest";
 import {
   dashboardNavigation,
+  getVisibleDashboardLinks,
   getDashboardRouteTitle,
 } from "@/features/dashboard/config";
 
@@ -45,6 +46,22 @@ describe("dashboard navigation", () => {
     );
     expect(getDashboardRouteTitle("/dashboard/administration/membres")).toBe(
       "Administration",
+    );
+  });
+
+  it("filters administration views by explored workspace role", () => {
+    expect(
+      getVisibleDashboardLinks("founder").map((item) => item.href),
+    ).toEqual(["/dashboard", "/dashboard/administration"]);
+    expect(getVisibleDashboardLinks("admin").map((item) => item.href)).toEqual([
+      "/dashboard",
+      "/dashboard/administration",
+    ]);
+    expect(
+      getVisibleDashboardLinks("manager").map((item) => item.href),
+    ).toEqual(["/dashboard"]);
+    expect(getDashboardRouteTitle("/dashboard/administration", "viewer")).toBe(
+      "Dashboard",
     );
   });
 });

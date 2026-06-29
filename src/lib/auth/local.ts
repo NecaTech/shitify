@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 import { env } from "@/lib/env";
 import { LOCAL_AUTH_COOKIE_NAME } from "./local-cookie";
 
-const LOCAL_USER_ID = "local_founder";
+const LOCAL_FOUNDER_USER_ID = "local_founder";
 const SESSION_TTL_SECONDS = 60 * 60 * 8;
 
 type LocalSessionPayload = {
@@ -61,28 +61,36 @@ function safeEqual(left: string, right: string) {
   );
 }
 
-function localCredentials() {
+type LocalCredentials = {
+  id: string;
+  email: string;
+  name: string;
+  password: string;
+  role: "founder";
+};
+
+function localCredentials(): LocalCredentials[] {
   if (!env.LOCAL_AUTH_ENABLED || env.NODE_ENV === "production") {
-    return null;
+    return [];
   }
 
-  if (
-    !env.FOUNDER_EMAIL ||
-    !env.FOUNDER_NAME ||
-    !env.FOUNDER_INITIAL_PASSWORD
-  ) {
-    return null;
+  const credentials: LocalCredentials[] = [];
+
+  if (env.FOUNDER_EMAIL && env.FOUNDER_NAME && env.FOUNDER_INITIAL_PASSWORD) {
+    credentials.push({
+      id: LOCAL_FOUNDER_USER_ID,
+      email: env.FOUNDER_EMAIL.toLowerCase(),
+      name: env.FOUNDER_NAME,
+      password: env.FOUNDER_INITIAL_PASSWORD,
+      role: "founder",
+    });
   }
 
-  return {
-    email: env.FOUNDER_EMAIL.toLowerCase(),
-    name: env.FOUNDER_NAME,
-    password: env.FOUNDER_INITIAL_PASSWORD,
-  };
+  return credentials;
 }
 
 export function isLocalAuthEnabled() {
-  return Boolean(localCredentials());
+  return localCredentials().length > 0;
 }
 
 export function canAttemptLocalAuth() {
@@ -96,22 +104,21 @@ export async function createLocalAuthSession({
   email: string;
   password: string;
 }) {
-  const credentials = localCredentials();
+  const credentials = localCredentials().find(
+    (item) => item.email === email.trim().toLowerCase(),
+  );
   if (!credentials) return false;
 
-  if (
-    email.trim().toLowerCase() !== credentials.email ||
-    password !== credentials.password
-  ) {
+  if (password !== credentials.password) {
     return false;
   }
 
   const expiresAt = Math.floor(Date.now() / 1000) + SESSION_TTL_SECONDS;
   const payload: LocalSessionPayload = {
-    sub: LOCAL_USER_ID,
+    sub: credentials.id,
     email: credentials.email,
     name: credentials.name,
-    role: "founder",
+    role: credentials.role,
     exp: expiresAt,
   };
   const encodedPayload = base64url(JSON.stringify(payload));
@@ -155,7 +162,7 @@ export async function getLocalAuthSession(): Promise<LocalSession | null> {
       fromBase64url(encodedPayload),
     ) as Partial<LocalSessionPayload>;
     if (
-      payload.sub !== LOCAL_USER_ID ||
+      payload.sub !== LOCAL_FOUNDER_USER_ID ||
       payload.role !== "founder" ||
       !payload.email ||
       !payload.name ||
@@ -167,10 +174,21 @@ export async function getLocalAuthSession(): Promise<LocalSession | null> {
 
     const now = new Date();
     const expiresAt = new Date(payload.exp * 1000);
+    const user: LocalSession["user"] = {
+      id: payload.sub,
+      name: payload.name,
+      email: payload.email,
+      emailVerified: true,
+      image: null,
+      role: payload.role,
+      createdAt: now,
+      updatedAt: now,
+    };
+
     return {
       session: {
         id: "local_session",
-        userId: LOCAL_USER_ID,
+        userId: payload.sub,
         token,
         expiresAt,
         ipAddress: null,
@@ -178,16 +196,7 @@ export async function getLocalAuthSession(): Promise<LocalSession | null> {
         createdAt: now,
         updatedAt: now,
       },
-      user: {
-        id: LOCAL_USER_ID,
-        name: payload.name,
-        email: payload.email,
-        emailVerified: true,
-        image: null,
-        role: "founder",
-        createdAt: now,
-        updatedAt: now,
-      },
+      user,
     };
   } catch {
     return null;

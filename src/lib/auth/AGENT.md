@@ -26,7 +26,9 @@
 - **Auth locale boilerplate** — exception bornée : en développement uniquement,
   `LOCAL_AUTH_ENABLED=true` peut utiliser `FOUNDER_EMAIL`,
   `FOUNDER_NAME` et `FOUNDER_INITIAL_PASSWORD` pour créer une session signée
-  sans DB. Ne pas utiliser pour un projet client, staging ou production.
+  sans DB. Le founder peut changer de perspective dashboard via le switch
+  Founder/Admin, mais il n'existe pas de second compte admin local. Ne pas
+  utiliser pour un projet client, staging ou production.
 - Ne jamais inférer un founder depuis un email, user id ou domaine.
 - Les rôles workspace ne modifient jamais `user.role`.
 

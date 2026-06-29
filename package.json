@@ -30,6 +30,7 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
+    "verify:dashboard-local": "tsx scripts/verify-dashboard-local.ts",
     "readiness": "tsx scripts/readiness.ts",
     "readiness:static": "tsx scripts/readiness.ts --static",
     "readiness:release": "pnpm readiness && pnpm test:e2e",

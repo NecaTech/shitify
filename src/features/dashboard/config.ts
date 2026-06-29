@@ -1,5 +1,7 @@
 import { Gauge, Shield } from "lucide-react";
+import { workspaceRoleAtLeast } from "@/features/workspace/roles";
 import type { DashboardNavItem } from "./types";
+import type { DashboardViewMode } from "./view-mode";
 
 export const dashboardNavigation: DashboardNavItem[] = [
   {
@@ -15,15 +17,37 @@ export const dashboardNavigation: DashboardNavItem[] = [
     href: "/dashboard/administration",
     icon: Shield,
     visible: true,
+    minimumWorkspaceRole: "admin",
   },
 ];
 
-export function getDashboardRouteTitle(pathname: string) {
-  const visibleLinks = dashboardNavigation.flatMap((item) => {
+export function getVisibleDashboardLinks(viewMode: DashboardViewMode) {
+  return dashboardNavigation.flatMap((item) => {
     if (!item.visible) return [];
-    if (item.type === "link") return [item];
-    return item.items.filter((child) => child.visible);
+    if (item.type === "link") {
+      if (!canViewDashboardItem(item, viewMode)) return [];
+      return [item];
+    }
+    return item.items.filter(
+      (child) => child.visible && canViewDashboardItem(child, viewMode),
+    );
   });
+}
+
+function canViewDashboardItem(
+  item: DashboardNavItem,
+  viewMode: DashboardViewMode,
+) {
+  if (viewMode === "founder") return true;
+  if (!item.minimumWorkspaceRole) return true;
+  return workspaceRoleAtLeast(viewMode, item.minimumWorkspaceRole);
+}
+
+export function getDashboardRouteTitle(
+  pathname: string,
+  viewMode: DashboardViewMode = "founder",
+) {
+  const visibleLinks = getVisibleDashboardLinks(viewMode);
 
   return (
     visibleLinks.find((item) => {
