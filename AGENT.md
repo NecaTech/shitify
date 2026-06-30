@@ -21,17 +21,31 @@ Exemple : modifier `src/features/auth/actions.ts` implique de lire :
 - `src/features/AGENT.md`
 - `src/features/auth/AGENT.md`
 
-## Détection Boilerplate
+## Contexte de travail
 
-Si `git remote get-url origin` contient `necatech-boilerplate` ou que `git remote`
-est vide, et que la demande ne concerne pas le boilerplate lui-même :
+Ce dépôt est le **boilerplate source** tant que `git remote get-url origin`
+contient `necatech-boilerplate`. Le boilerplate source se travaille uniquement en
+local, en mode développement. Les apports validés (features génériques, logiques
+métier réutilisables, garde-fous, tests, manifestes, règles Founder/Admin/rôles)
+restent dans ce dépôt puis sont commit/push sur son remote boilerplate.
 
-> Ce projet est encore configuré en tant que boilerplate. Lance `pnpm init-project`
-> pour l'initialiser.
+Un projet client est créé depuis le template GitHub du boilerplate, avec son
+propre dépôt distant. Dans ce cas, le remote ne pointe plus vers
+`necatech-boilerplate` et le `AGENT.md` local doit être remplacé par le contrat du
+projet client. Les développements servent alors le client et ne doivent pas être
+confondus avec l'enrichissement du boilerplate source.
 
-Exception : si la demande concerne explicitement le boilerplate, ses scripts, ses
-règles, son template GitHub ou son déploiement reproductible, travailler sur le
-boilerplate sans demander d'initialisation.
+Règle de détection opérationnelle :
+
+- remote contenant `necatech-boilerplate` : `workMode=boilerplate-source` ;
+- remote existant ne contenant pas `necatech-boilerplate` :
+  `workMode=client-project`, suivre le `AGENT.md` client ;
+- remote absent : contexte incomplet, demander initialisation ou confirmation
+  avant tout travail qui pourrait spécialiser le dépôt.
+
+Dans le boilerplate source, ne pas demander `pnpm init-project` quand la demande
+concerne le socle, ses scripts, ses règles, ses features génériques, son template
+GitHub, son dashboard Founder/Admin ou sa maturation.
 
 ## Autorité des règles
 
@@ -44,24 +58,22 @@ boilerplate sans demander d'initialisation.
 - Si une règle est incomplète ou contradictoire, corriger le fichier `AGENT.md`
   concerné dans le même changement que la correction technique.
 
-## Phases projet
+## Environnements
 
-Le cycle post-clonage officiel est documenté dans
-`docs/development-phases.md`. Ne pas réintroduire une obligation de DB en phase
-`dev`.
+`APP_ENV` ne décrit un cycle de livraison que dans un projet client.
 
-- `dev` : développement initial après clonage. `LOCAL_AUTH_ENABLED=true` peut
-  ouvrir `/dashboard` avec une session locale signée et les variables founder de
-  `.env.local`. `DATABASE_URL` n'est pas obligatoire.
-- `staging` : première phase avec DB client réelle. `DATABASE_URL` est configuré,
-  `LOCAL_AUTH_ENABLED=false`, les migrations Drizzle sont générées/appliquées et
-  `pnpm db:seed` crée le founder DB.
-- `production` : projet jugé livrable. `APP_ENV=prod`,
-  `LOCAL_AUTH_ENABLED=false`, Better Auth DB-backed obligatoire, warnings
-  readiness production revus.
+- `workMode=boilerplate-source` : seul `APP_ENV=dev` est cohérent. Les phases
+  `staging` et `prod` n'existent pas comme phases de livraison du boilerplate et
+  doivent être bloquées ou signalées comme incohérentes par les scripts/readiness.
+- `workMode=client-project` : le cycle post-clonage officiel est
+  `dev -> staging -> prod`, documenté dans `docs/development-phases.md` après
+  spécialisation du projet client.
 
-TODO(init-project): avant une vraie production client, séparer les environnements
-DB ou documenter formellement l'exception d'exploitation.
+Dans le boilerplate source, `LOCAL_AUTH_ENABLED=true` peut ouvrir `/dashboard`
+avec une session locale signée et les variables founder de `.env.local`.
+`DATABASE_URL` n'est pas obligatoire. Une DB locale en `APP_ENV=dev` peut servir
+à tester les invariants réutilisables, mais aucune livraison staging/prod ne
+s'applique au boilerplate source.
 
 ## Routage par zone
 
