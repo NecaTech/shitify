@@ -1,7 +1,11 @@
 import "server-only";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { canAttemptLocalAuth, getLocalAuthSession } from "./local";
+import {
+  canAttemptDatabaseAuth,
+  canAttemptLocalAuth,
+  getLocalAuthSession,
+} from "./local";
 
 /**
  * Use in Server Components / Server Actions that require an authenticated session.
@@ -14,8 +18,10 @@ export async function requireSession() {
     const localSession = await getLocalAuthSession();
     if (localSession) return localSession;
 
-    const pathname = headersList.get("x-current-path") ?? "/";
-    redirect(`/login?redirect=${encodeURIComponent(pathname)}`);
+    if (!canAttemptDatabaseAuth()) {
+      const pathname = headersList.get("x-current-path") ?? "/";
+      redirect(`/login?redirect=${encodeURIComponent(pathname)}`);
+    }
   }
 
   const { auth } = await import("./index");
@@ -32,7 +38,10 @@ export async function requireSession() {
  * Use in public pages that optionally personalize for authenticated users.
  */
 export async function getOptionalSession() {
-  if (canAttemptLocalAuth()) return getLocalAuthSession();
+  if (canAttemptLocalAuth()) {
+    const localSession = await getLocalAuthSession();
+    if (localSession || !canAttemptDatabaseAuth()) return localSession;
+  }
 
   const { auth } = await import("./index");
   return auth.api.getSession({ headers: await headers() });

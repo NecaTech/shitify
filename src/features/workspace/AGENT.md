@@ -3,7 +3,8 @@
 ## Contrat
 
 - Domaine espaces de travail, membres et rôles.
-- Les rôles workspace sont la hiérarchie client : `owner`, `admin`, `manager`, `staff`, `editor`, `viewer`.
+- Les rôles workspace bootstrap sont `owner`, `admin` et `member`.
+- Les rôles client additionnels sont créés par workspace et portent leurs permissions explicites.
 - Le rôle plateforme `founder` vit sur `user.role` et reste hors membership workspace.
 - Toute logique de permission durable doit s'appuyer sur ce modèle ou une évolution explicite.
 - Les rôles doivent être déclarés et testés, pas inférés depuis un email.

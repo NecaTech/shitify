@@ -7,8 +7,8 @@
 - Les routes custom appellent des services, jamais des repositories ni `db` directement.
 - Le handler Better Auth sous `api/auth/[...all]` est une intégration framework :
   ne pas le modifier sauf changement explicite de Better Auth. En mode local
-  boilerplate, il doit importer Better Auth paresseusement pour éviter de charger
-  la DB quand `LOCAL_AUTH_ENABLED=true`.
+  boilerplate sans `DATABASE_URL`, il doit importer Better Auth paresseusement
+  pour éviter de charger la DB quand `LOCAL_AUTH_ENABLED=true`.
 
 ## Sécurité
 

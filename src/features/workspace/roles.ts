@@ -1,68 +1,33 @@
 import type { PlatformRole } from "@/lib/auth/roles";
 
-export const workspaceRoles = [
-  "owner",
-  "admin",
-  "manager",
-  "staff",
-  "editor",
-  "viewer",
-] as const;
+export const bootstrapWorkspaceRoles = ["owner", "admin", "member"] as const;
 
-export type WorkspaceRole = (typeof workspaceRoles)[number];
+export type BootstrapWorkspaceRole = (typeof bootstrapWorkspaceRoles)[number];
+export type WorkspaceRole = BootstrapWorkspaceRole;
 
 export const assignableWorkspaceRoles = [
   "admin",
-  "manager",
-  "staff",
-  "editor",
-  "viewer",
+  "member",
 ] as const satisfies readonly WorkspaceRole[];
 
 export type AssignableWorkspaceRole = (typeof assignableWorkspaceRoles)[number];
 
-export const workspaceRoleDefinitions = {
-  owner: {
-    label: "Owner",
-    description: "Supervise le workspace et peut attribuer le rôle admin.",
-  },
-  admin: {
-    label: "Admin",
-    description: "Gère les membres, les droits et les vues d'administration.",
-  },
-  manager: {
-    label: "Manager",
-    description: "Coordonne les opérations et consulte les espaces métier.",
-  },
-  staff: {
-    label: "Staff",
-    description: "Exécute les workflows opérationnels autorisés.",
-  },
-  editor: {
-    label: "Editor",
-    description: "Prépare et met à jour les contenus autorisés.",
-  },
-  viewer: {
-    label: "Viewer",
-    description: "Consulte uniquement les informations publiées pour son rôle.",
-  },
-} as const satisfies Record<
-  WorkspaceRole,
-  { label: string; description: string }
->;
+export const bootstrapWorkspaceRoleDefinitions = {
+  owner: { label: "Owner" },
+  admin: { label: "Admin" },
+  member: { label: "Member" },
+} as const satisfies Record<WorkspaceRole, { label: string }>;
 
 const workspaceRoleRank = {
   owner: 60,
   admin: 50,
-  manager: 40,
-  staff: 30,
-  editor: 20,
-  viewer: 10,
+  member: 10,
 } as const satisfies Record<WorkspaceRole, number>;
 
 export function isWorkspaceRole(value: unknown): value is WorkspaceRole {
   return (
-    typeof value === "string" && workspaceRoles.includes(value as WorkspaceRole)
+    typeof value === "string" &&
+    bootstrapWorkspaceRoles.includes(value as WorkspaceRole)
   );
 }
 
@@ -101,6 +66,45 @@ export function canAssignWorkspaceRole(
   targetRole: AssignableWorkspaceRole,
 ) {
   return canManageWorkspaceRole(actorRole, targetRole);
+}
+
+export const dashboardNavigationPermissions = [
+  "dashboard",
+  "administration",
+] as const;
+
+export type DashboardNavigationPermission =
+  (typeof dashboardNavigationPermissions)[number];
+
+export type WorkspaceCustomRolePermissions = {
+  navigation: DashboardNavigationPermission[];
+};
+
+export function isDashboardNavigationPermission(
+  value: unknown,
+): value is DashboardNavigationPermission {
+  return (
+    typeof value === "string" &&
+    dashboardNavigationPermissions.includes(
+      value as DashboardNavigationPermission,
+    )
+  );
+}
+
+export function normalizeWorkspaceRolePermissions(
+  permissions: Partial<WorkspaceCustomRolePermissions>,
+): WorkspaceCustomRolePermissions {
+  const navigation = Array.from(
+    new Set(
+      (permissions.navigation ?? ["dashboard"]).filter(
+        isDashboardNavigationPermission,
+      ),
+    ),
+  );
+
+  return {
+    navigation: navigation.length > 0 ? navigation : ["dashboard"],
+  };
 }
 
 export function canWorkspaceRoleManagePlatformRole(

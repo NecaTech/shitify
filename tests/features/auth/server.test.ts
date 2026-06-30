@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const getSession = vi.fn();
 const canAttemptLocalAuth = vi.fn();
+const canAttemptDatabaseAuth = vi.fn();
 const getLocalAuthSession = vi.fn();
 const headersList = new Headers({ "x-current-path": "/dashboard" });
 const headers = vi.fn(async () => headersList);
@@ -20,6 +21,7 @@ vi.mock("@/lib/auth/index", () => ({
   },
 }));
 vi.mock("@/lib/auth/local", () => ({
+  canAttemptDatabaseAuth,
   canAttemptLocalAuth,
   getLocalAuthSession,
 }));
@@ -49,6 +51,7 @@ const session = {
 beforeEach(() => {
   vi.clearAllMocks();
   canAttemptLocalAuth.mockReturnValue(false);
+  canAttemptDatabaseAuth.mockReturnValue(false);
   getLocalAuthSession.mockResolvedValue(null);
 });
 
@@ -62,6 +65,30 @@ describe("auth server session helpers", () => {
     expect(getLocalAuthSession).toHaveBeenCalled();
     expect(getSession).not.toHaveBeenCalled();
     expect(redirect).not.toHaveBeenCalled();
+  });
+
+  it("falls back to the DB-backed session when local auth is enabled with a database", async () => {
+    canAttemptLocalAuth.mockReturnValue(true);
+    canAttemptDatabaseAuth.mockReturnValue(true);
+    getLocalAuthSession.mockResolvedValue(null);
+    getSession.mockResolvedValue(session);
+    const { requireSession } = await import("@/lib/auth/server");
+
+    await expect(requireSession()).resolves.toBe(session);
+    expect(getLocalAuthSession).toHaveBeenCalled();
+    expect(getSession).toHaveBeenCalledWith({ headers: headersList });
+    expect(redirect).not.toHaveBeenCalled();
+  });
+
+  it("redirects anonymous users without reading Better Auth when local auth has no database", async () => {
+    canAttemptLocalAuth.mockReturnValue(true);
+    canAttemptDatabaseAuth.mockReturnValue(false);
+    getLocalAuthSession.mockResolvedValue(null);
+    const { requireSession } = await import("@/lib/auth/server");
+
+    await expect(requireSession()).rejects.toThrow("redirect");
+    expect(getSession).not.toHaveBeenCalled();
+    expect(redirect).toHaveBeenCalledWith("/login?redirect=%2Fdashboard");
   });
 
   it("returns the DB-backed session when authenticated", async () => {

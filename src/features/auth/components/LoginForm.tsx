@@ -9,9 +9,13 @@ import { localLoginAction } from "../actions";
 
 type LoginFormProps = {
   localAuthEnabled?: boolean;
+  databaseAuthEnabled?: boolean;
 };
 
-export function LoginForm({ localAuthEnabled = false }: LoginFormProps) {
+export function LoginForm({
+  localAuthEnabled = false,
+  databaseAuthEnabled = false,
+}: LoginFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
@@ -27,8 +31,10 @@ export function LoginForm({ localAuthEnabled = false }: LoginFormProps) {
       const redirectTo = searchParams.get("redirect") || "/dashboard";
       if (localAuthEnabled) {
         const result = await localLoginAction({ email, password, redirectTo });
-        if (!result.success) setError(result.error);
-        return;
+        if (result.success || !databaseAuthEnabled) {
+          if (!result.success) setError(result.error);
+          return;
+        }
       }
 
       const { error } = await authClient.signIn.email({ email, password });

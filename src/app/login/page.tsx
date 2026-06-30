@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { LoginForm } from "@/features/auth/components/LoginForm";
-import { isLocalAuthEnabled } from "@/lib/auth/local";
+import { canAttemptDatabaseAuth, isLocalAuthEnabled } from "@/lib/auth/local";
 
 export const metadata: Metadata = { title: "Connexion" };
 
 export default function LoginPage() {
   const localAuthEnabled = isLocalAuthEnabled();
+  const databaseAuthEnabled = canAttemptDatabaseAuth();
 
   return (
     <main className="flex flex-1 flex-col items-center justify-center p-8">
@@ -14,8 +15,11 @@ export default function LoginPage() {
         <h1 className="mb-6 text-2xl font-semibold tracking-tight">
           Connexion
         </h1>
-        <LoginForm localAuthEnabled={localAuthEnabled} />
-        {!localAuthEnabled ? (
+        <LoginForm
+          localAuthEnabled={localAuthEnabled}
+          databaseAuthEnabled={databaseAuthEnabled}
+        />
+        {!localAuthEnabled || databaseAuthEnabled ? (
           <p className="text-muted-foreground mt-4 text-center text-sm">
             Pas encore de compte ?{" "}
             <Link href="/register" className="text-foreground underline">

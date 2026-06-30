@@ -3,9 +3,25 @@ import { join } from "path";
 import { describe, expect, it } from "vitest";
 import {
   dashboardNavigation,
-  getVisibleDashboardLinks,
   getDashboardRouteTitle,
+  getVisibleDashboardLinks,
 } from "@/features/dashboard/config";
+import { shouldLoadFounderWorkspaceRoles } from "@/features/dashboard/workspace-role-loading";
+import type { DashboardViewOption } from "@/features/dashboard/view-mode";
+
+const viewOptions: DashboardViewOption[] = [
+  { mode: "founder", label: "Founder", permissions: null },
+  {
+    mode: "admin",
+    label: "Admin",
+    permissions: { navigation: ["dashboard", "administration"] },
+  },
+  {
+    mode: "role:operations",
+    label: "Operations",
+    permissions: { navigation: ["dashboard"] },
+  },
+];
 
 function flattenVisibleLinks() {
   return dashboardNavigation.flatMap((item) => {
@@ -51,17 +67,46 @@ describe("dashboard navigation", () => {
 
   it("filters administration views by explored workspace role", () => {
     expect(
-      getVisibleDashboardLinks("founder").map((item) => item.href),
+      getVisibleDashboardLinks("founder", viewOptions).map((item) => item.href),
     ).toEqual(["/dashboard", "/dashboard/administration"]);
-    expect(getVisibleDashboardLinks("admin").map((item) => item.href)).toEqual([
-      "/dashboard",
-      "/dashboard/administration",
-    ]);
     expect(
-      getVisibleDashboardLinks("manager").map((item) => item.href),
+      getVisibleDashboardLinks("admin", viewOptions).map((item) => item.href),
+    ).toEqual(["/dashboard", "/dashboard/administration"]);
+    expect(
+      getVisibleDashboardLinks("role:operations", viewOptions).map(
+        (item) => item.href,
+      ),
     ).toEqual(["/dashboard"]);
-    expect(getDashboardRouteTitle("/dashboard/administration", "viewer")).toBe(
-      "Dashboard",
-    );
+    expect(
+      getDashboardRouteTitle(
+        "/dashboard/administration",
+        "role:operations",
+        viewOptions,
+      ),
+    ).toBe("Dashboard");
+  });
+
+  it("loads founder workspace roles from DB in dev and staging only", () => {
+    expect(
+      shouldLoadFounderWorkspaceRoles({
+        appEnv: "dev",
+        hasDatabaseUrl: true,
+        isFounder: true,
+      }),
+    ).toBe(true);
+    expect(
+      shouldLoadFounderWorkspaceRoles({
+        appEnv: "staging",
+        hasDatabaseUrl: true,
+        isFounder: true,
+      }),
+    ).toBe(true);
+    expect(
+      shouldLoadFounderWorkspaceRoles({
+        appEnv: "prod",
+        hasDatabaseUrl: true,
+        isFounder: true,
+      }),
+    ).toBe(false);
   });
 });

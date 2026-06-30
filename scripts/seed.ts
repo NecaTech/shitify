@@ -5,15 +5,18 @@
  * before this file. This script still validates its own required values because
  * it can be invoked directly during local maintenance.
  */
-import { Pool } from "@neondatabase/serverless";
+import { Pool as NeonPool } from "@neondatabase/serverless";
 import { hashPassword } from "better-auth/crypto";
 import { and, eq } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/neon-serverless";
+import { drizzle as drizzleNeon } from "drizzle-orm/neon-serverless";
+import { drizzle as drizzlePg } from "drizzle-orm/node-postgres";
 import { randomUUID } from "node:crypto";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { Pool as PgPool } from "pg";
 import { account, user } from "../src/lib/db/auth-schema";
 import { workspace } from "../src/features/workspace/schema";
+import { classifyDatabaseUrl } from "../src/lib/db/database-url";
 
 const CREDENTIAL_PROVIDER_ID = "credential";
 const RESET_PASSWORD_VALUE = "true";
@@ -263,8 +266,15 @@ export async function seedFounderAndInitialWorkspace({
 }
 
 function createDrizzleSeedStore(databaseUrl: string): FounderSeedStore {
-  const pool = new Pool({ connectionString: databaseUrl });
-  const db = drizzle(pool);
+  const databaseKind = classifyDatabaseUrl(new URL(databaseUrl));
+  const pool =
+    databaseKind === "local"
+      ? new PgPool({ connectionString: databaseUrl })
+      : new NeonPool({ connectionString: databaseUrl });
+  const db =
+    databaseKind === "local"
+      ? drizzlePg(pool as PgPool)
+      : drizzleNeon(pool as NeonPool);
 
   return {
     async findUserByEmail(email) {

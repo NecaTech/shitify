@@ -1,7 +1,9 @@
-import { Pool } from "@neondatabase/serverless";
+import { Pool as NeonPool } from "@neondatabase/serverless";
 import { config } from "dotenv";
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { Pool as PgPool } from "pg";
+import { classifyDatabaseUrl } from "../src/lib/db/database-url";
 import {
   APP_ENVS,
   getDatabaseSchemaNameFromParts,
@@ -115,30 +117,6 @@ function redactDatabaseUrl(url: URL) {
   return redacted.toString();
 }
 
-function classifyDatabaseUrl(url: URL) {
-  const text = `${url.hostname} ${url.pathname} ${url.username}`.toLowerCase();
-
-  if (
-    ["localhost", "127.0.0.1", "::1", "postgres", "db"].includes(url.hostname)
-  ) {
-    return "local";
-  }
-
-  if (
-    text.includes("prod") ||
-    text.includes("production") ||
-    text.includes("live")
-  ) {
-    return "production-suspect";
-  }
-
-  if (text.includes("neon.tech") || text.includes("neon")) {
-    return "remote";
-  }
-
-  return "unknown";
-}
-
 function assertConfirmation(name: string, expected: string, reason: string) {
   const value = process.env[name]?.trim();
   if (value !== expected) {
@@ -160,8 +138,22 @@ function getPullEnvTarget() {
   fail(`Unsupported pull-env target: ${target}`);
 }
 
-async function ensureSchema(schemaName: string, databaseUrl: string) {
-  const pool = new Pool({ connectionString: databaseUrl });
+async function ensureSchema(
+  schemaName: string,
+  databaseUrl: string,
+  databaseKind: ReturnType<typeof classifyDatabaseUrl>,
+) {
+  if (databaseKind === "local") {
+    const pool = new PgPool({ connectionString: databaseUrl });
+    try {
+      await pool.query(`CREATE SCHEMA IF NOT EXISTS "${schemaName}"`);
+    } finally {
+      await pool.end();
+    }
+    return;
+  }
+
+  const pool = new NeonPool({ connectionString: databaseUrl });
   try {
     await pool.query(`CREATE SCHEMA IF NOT EXISTS "${schemaName}"`);
   } finally {
@@ -235,7 +227,7 @@ async function main() {
     (operation === "migrate" || operation === "push") &&
     hasFlag("ensure-schema")
   ) {
-    await ensureSchema(schemaName, databaseUrl.toString());
+    await ensureSchema(schemaName, databaseUrl.toString(), databaseKind);
   }
 
   console.info(

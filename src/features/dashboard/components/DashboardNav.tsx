@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { getVisibleDashboardLinks } from "../config";
 import type { DashboardNavLink } from "../types";
-import type { DashboardViewMode } from "../view-mode";
+import type { DashboardViewMode, DashboardViewOption } from "../view-mode";
 
 function isActivePath(pathname: string, href: string) {
   if (href === "/dashboard") return pathname === href;
@@ -45,11 +45,13 @@ function NavLink({
 
 export function DashboardSidebar({
   viewMode,
+  viewOptions,
 }: {
   viewMode: DashboardViewMode;
+  viewOptions: DashboardViewOption[];
 }) {
   const pathname = usePathname();
-  const links = getVisibleDashboardLinks(viewMode);
+  const links = getVisibleDashboardLinks(viewMode, viewOptions);
 
   return (
     <aside className="border-border bg-card fixed inset-y-0 left-0 hidden w-64 border-r lg:flex lg:flex-col">
@@ -76,11 +78,13 @@ export function DashboardSidebar({
 
 export function DashboardBottomNav({
   viewMode,
+  viewOptions,
 }: {
   viewMode: DashboardViewMode;
+  viewOptions: DashboardViewOption[];
 }) {
   const pathname = usePathname();
-  const links = getVisibleDashboardLinks(viewMode);
+  const links = getVisibleDashboardLinks(viewMode, viewOptions);
 
   return (
     <nav

@@ -1,3 +1,4 @@
+export { appSchema } from "./app-schema";
 export * from "@/features/auth/schema";
 export * from "@/features/booking/schema";
 export * from "@/features/commerce/schema";

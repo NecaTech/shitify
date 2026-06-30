@@ -97,6 +97,10 @@ export function canAttemptLocalAuth() {
   return Boolean(env.LOCAL_AUTH_ENABLED && env.NODE_ENV !== "production");
 }
 
+export function canAttemptDatabaseAuth() {
+  return Boolean(env.DATABASE_URL);
+}
+
 export async function createLocalAuthSession({
   email,
   password,

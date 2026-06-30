@@ -1,6 +1,6 @@
 import { toNextJsHandler } from "better-auth/next-js";
 import { NextResponse } from "next/server";
-import { isLocalAuthEnabled } from "@/lib/auth/local";
+import { canAttemptDatabaseAuth, isLocalAuthEnabled } from "@/lib/auth/local";
 
 async function betterAuthHandlers() {
   const { auth } = await import("@/lib/auth");
@@ -15,14 +15,18 @@ function localAuthResponse() {
 }
 
 export async function GET(request: Request) {
-  if (isLocalAuthEnabled()) return localAuthResponse();
+  if (isLocalAuthEnabled() && !canAttemptDatabaseAuth()) {
+    return localAuthResponse();
+  }
 
   const handlers = await betterAuthHandlers();
   return handlers.GET(request);
 }
 
 export async function POST(request: Request) {
-  if (isLocalAuthEnabled()) return localAuthResponse();
+  if (isLocalAuthEnabled() && !canAttemptDatabaseAuth()) {
+    return localAuthResponse();
+  }
 
   const handlers = await betterAuthHandlers();
   return handlers.POST(request);

@@ -6,20 +6,21 @@ import {
   FlaskConical,
   Layers,
   Settings2,
+  TrendingUp,
+  Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  workspaceRoleAtLeast,
-  workspaceRoleDefinitions,
-} from "@/features/workspace/roles";
-import type { WorkspaceRole } from "@/features/workspace/roles";
-import type { DashboardViewMode } from "../view-mode";
+import type { DatabaseUrlKind } from "@/lib/db/database-url";
+import type { DashboardViewMode, DashboardViewOption } from "../view-mode";
 
 type PiloteHomeProps = {
   viewMode: DashboardViewMode;
   appEnv: "dev" | "staging" | "prod";
   localAuthEnabled: boolean;
   hasDatabaseUrl: boolean;
+  databaseKind: DatabaseUrlKind | null;
+  viewOptions: DashboardViewOption[];
+  isFounder: boolean;
 };
 
 function phaseLabel(appEnv: PiloteHomeProps["appEnv"]) {
@@ -31,7 +32,8 @@ function FounderPilot({
   appEnv,
   localAuthEnabled,
   hasDatabaseUrl,
-}: Omit<PiloteHomeProps, "viewMode">) {
+  databaseKind,
+}: Omit<PiloteHomeProps, "viewMode" | "viewOptions" | "isFounder">) {
   const checklist = [
     {
       label: "Dashboard protégé accessible",
@@ -85,7 +87,11 @@ function FounderPilot({
             <div>
               <p className="text-muted-foreground text-xs">DB</p>
               <p className="mt-1 font-medium">
-                {hasDatabaseUrl ? "Neon configurée" : "non requise"}
+                {hasDatabaseUrl
+                  ? databaseKind === "local"
+                    ? "locale configurée"
+                    : "Neon configurée"
+                  : "non requise"}
               </p>
             </div>
           </div>
@@ -160,36 +166,70 @@ function FounderPilot({
   );
 }
 
-function WorkspacePilot({ role }: { role: WorkspaceRole }) {
-  const roleDefinition = workspaceRoleDefinitions[role];
-  const canOpenAdministration = workspaceRoleAtLeast(role, "admin");
+function WorkspacePilot({ option }: { option: DashboardViewOption }) {
+  const canOpenAdministration =
+    option.permissions?.navigation.includes("administration") ?? false;
 
+  if (!canOpenAdministration) return null;
+
+  return (
+    <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
+      <article className="border-border rounded-lg border p-5">
+        <div className="bg-muted inline-flex size-9 items-center justify-center rounded-lg">
+          <Settings2 aria-hidden="true" className="size-4" />
+        </div>
+        <h2 className="mt-4 text-base font-semibold">Administration</h2>
+        <Button asChild variant="outline" className="mt-4">
+          <Link href="/dashboard/administration">
+            Ouvrir
+            <ArrowRight aria-hidden="true" />
+          </Link>
+        </Button>
+      </article>
+    </div>
+  );
+}
+
+function AdminPilot() {
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
       <section className="border-border bg-card text-card-foreground rounded-lg border p-5 sm:p-6">
         <div className="bg-muted inline-flex size-10 items-center justify-center rounded-lg">
           <BriefcaseBusiness aria-hidden="true" className="size-5" />
         </div>
-        <h1 className="mt-4 text-2xl font-semibold tracking-tight">
-          Vue {roleDefinition.label}
+        <p className="text-muted-foreground mt-4 text-sm font-medium">
+          Pilote admin
+        </p>
+        <h1 className="mt-2 text-2xl font-semibold tracking-tight">
+          Vue d'ensemble métier
         </h1>
         <p className="text-muted-foreground mt-3 max-w-3xl text-sm leading-6">
-          {roleDefinition.description} Le founder conserve son identité et
-          bascule seulement de perspective pour vérifier les droits et les vues.
+          Suivez les accès, les membres et les signaux opérationnels du
+          workspace. Les blocs métier réels viendront se brancher ici au fil des
+          invariants projet.
         </p>
       </section>
 
-      <section className="grid gap-4 md:grid-cols-2">
+      <section className="grid gap-4 md:grid-cols-3">
         <article className="border-border rounded-lg border p-5">
           <div className="bg-muted inline-flex size-9 items-center justify-center rounded-lg">
-            <Layers aria-hidden="true" className="size-4" />
+            <Users aria-hidden="true" className="size-4" />
           </div>
-          <h2 className="mt-4 text-base font-semibold">
-            Fonctionnalités disponibles
-          </h2>
+          <h2 className="mt-4 text-base font-semibold">Membres</h2>
           <p className="text-muted-foreground mt-2 text-sm leading-6">
-            Cette perspective affiche uniquement les sections accessibles au
-            rôle workspace sélectionné.
+            Gérez les membres du workspace et leurs rôles métier depuis
+            l'administration.
+          </p>
+        </article>
+
+        <article className="border-border rounded-lg border p-5">
+          <div className="bg-muted inline-flex size-9 items-center justify-center rounded-lg">
+            <TrendingUp aria-hidden="true" className="size-4" />
+          </div>
+          <h2 className="mt-4 text-base font-semibold">Activité</h2>
+          <p className="text-muted-foreground mt-2 text-sm leading-6">
+            Les indicateurs métier de chaque projet pourront alimenter cette vue
+            sans changer le socle d'accès.
           </p>
         </article>
 
@@ -197,20 +237,16 @@ function WorkspacePilot({ role }: { role: WorkspaceRole }) {
           <div className="bg-muted inline-flex size-9 items-center justify-center rounded-lg">
             <Settings2 aria-hidden="true" className="size-4" />
           </div>
-          <h2 className="mt-4 text-base font-semibold">Membres et droits</h2>
+          <h2 className="mt-4 text-base font-semibold">Administration</h2>
           <p className="text-muted-foreground mt-2 text-sm leading-6">
-            {canOpenAdministration
-              ? "Ce rôle peut accéder aux vues d'administration workspace."
-              : "Ce rôle ne voit pas l'administration dans sa navigation."}
+            Créez, modifiez ou supprimez les membres et assignez leurs rôles.
           </p>
-          {canOpenAdministration ? (
-            <Button asChild variant="outline" className="mt-4">
-              <Link href="/dashboard/administration">
-                Ouvrir
-                <ArrowRight aria-hidden="true" />
-              </Link>
-            </Button>
-          ) : null}
+          <Button asChild variant="outline" className="mt-4">
+            <Link href="/dashboard/administration">
+              Ouvrir
+              <ArrowRight aria-hidden="true" />
+            </Link>
+          </Button>
         </article>
       </section>
     </div>
@@ -219,7 +255,15 @@ function WorkspacePilot({ role }: { role: WorkspaceRole }) {
 
 export function PiloteHome(props: PiloteHomeProps) {
   if (props.viewMode !== "founder") {
-    return <WorkspacePilot role={props.viewMode} />;
+    if (!props.isFounder && props.viewMode === "admin") {
+      return <AdminPilot />;
+    }
+
+    const option =
+      props.viewOptions.find(
+        (candidate) => candidate.mode === props.viewMode,
+      ) ?? props.viewOptions.find((candidate) => candidate.mode === "admin");
+    return option ? <WorkspacePilot option={option} /> : null;
   }
 
   return (
@@ -227,6 +271,7 @@ export function PiloteHome(props: PiloteHomeProps) {
       appEnv={props.appEnv}
       localAuthEnabled={props.localAuthEnabled}
       hasDatabaseUrl={props.hasDatabaseUrl}
+      databaseKind={props.databaseKind}
     />
   );
 }

@@ -33,6 +33,16 @@ Allowed work:
 - add typed features, schemas, services, and tests;
 - keep DB-dependent workflows behind services/repositories until staging.
 
+Optional local DB:
+
+- for boilerplate invariants that need real persistence before cloning a client
+  project, use the local PostgreSQL service with `pnpm db:local:env`,
+  `pnpm db:local:up`, `pnpm db:push`, then `pnpm db:seed`;
+- this keeps `APP_ENV=dev`, uses `db:push` only against the local database, and
+  must not produce committed Drizzle migration files;
+- the reusable boilerplate still keeps `src/lib/db/migrations/` empty outside
+  `.gitkeep`.
+
 Do not:
 
 - treat the local auth session as a client production mechanism;

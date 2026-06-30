@@ -91,6 +91,34 @@ Puis ouvrir `/login` et se connecter avec les variables founder locales. Le
 dashboard `/dashboard` devient le point de départ du développement privé sans
 Neon, sans migration Drizzle et sans seed DB.
 
+### Option - DB locale pour invariants pré-clonage
+
+Le dashboard dev reste utilisable sans DB. Quand un invariant boilerplate doit
+être vérifié avant clonage client avec de vraies écritures DB, utiliser la base
+PostgreSQL locale dédiée :
+
+```bash
+pnpm db:local:env
+pnpm db:local:up
+pnpm db:push
+pnpm db:seed
+```
+
+Ce flux configure `.env.local` avec
+`postgres://necatech:***@localhost:54329/necatech_boilerplate`, lance Postgres
+via Docker, synchronise le schéma avec `db:push` en `APP_ENV=dev`, puis
+crée le founder et le workspace initial. Il sert aux invariants pré-clonage
+comme la création de rôles workspace.
+
+Pré-requis : l'utilisateur courant doit pouvoir accéder au socket Docker. Sur
+Linux, cela implique généralement d'être membre du groupe `docker`, puis de
+rouvrir la session shell.
+
+Ne pas committer de migration Drizzle générée depuis ce flux. La règle du
+boilerplate reste : `src/lib/db/migrations/` contient seulement `.gitkeep`.
+Les migrations SQL sont générées après `pnpm init-project` dans chaque projet
+client.
+
 ### Phase 2 - Staging avec DB client
 
 Objectif : basculer vers le vrai chemin applicatif dès que la DB client existe.
@@ -337,13 +365,17 @@ configurable comme comportement natif du dashboard.
 ## Rôles et seed founder
 
 Le rôle global `founder` est une autorité plateforme stockée sur `user.role`.
-Les permissions client restent dans `workspace_membership.role` avec la
-hiérarchie `owner`, `admin`, `manager`, `staff`, `editor`, `viewer`.
+Les rôles bootstrap du workspace restent limités à `owner` et `admin` dans
+`workspace_membership.role`. Les rôles métier additionnels sont créés par
+workspace dans la DB et portent leurs permissions explicites, notamment les vues
+de navigation dashboard autorisées.
 
 `pnpm db:seed` crée ou met à jour le founder et le workspace initial sans faire
-du founder un membre du workspace. Les futures invitations de membres devront
-passer par une feature dédiée et un lien email de confiance ; ce flux n'est pas
-implémenté dans le boilerplate actuel.
+du founder un membre du workspace. En dev avec DB locale configurée, le founder
+peut créer des rôles workspace et basculer de perspective pour vérifier les vues
+autorisées. Les futures invitations de membres devront passer par une feature
+dédiée et un lien email de confiance ; ce flux n'est pas implémenté dans le
+boilerplate actuel.
 
 ## Scripts
 

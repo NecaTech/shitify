@@ -1,7 +1,6 @@
 import { Gauge, Shield } from "lucide-react";
-import { workspaceRoleAtLeast } from "@/features/workspace/roles";
 import type { DashboardNavItem } from "./types";
-import type { DashboardViewMode } from "./view-mode";
+import type { DashboardViewMode, DashboardViewOption } from "./view-mode";
 
 export const dashboardNavigation: DashboardNavItem[] = [
   {
@@ -10,6 +9,7 @@ export const dashboardNavigation: DashboardNavItem[] = [
     href: "/dashboard",
     icon: Gauge,
     visible: true,
+    permission: "dashboard",
   },
   {
     type: "link",
@@ -17,19 +17,23 @@ export const dashboardNavigation: DashboardNavItem[] = [
     href: "/dashboard/administration",
     icon: Shield,
     visible: true,
-    minimumWorkspaceRole: "admin",
+    permission: "administration",
   },
 ];
 
-export function getVisibleDashboardLinks(viewMode: DashboardViewMode) {
+export function getVisibleDashboardLinks(
+  viewMode: DashboardViewMode,
+  viewOptions: readonly DashboardViewOption[],
+) {
   return dashboardNavigation.flatMap((item) => {
     if (!item.visible) return [];
     if (item.type === "link") {
-      if (!canViewDashboardItem(item, viewMode)) return [];
+      if (!canViewDashboardItem(item, viewMode, viewOptions)) return [];
       return [item];
     }
     return item.items.filter(
-      (child) => child.visible && canViewDashboardItem(child, viewMode),
+      (child) =>
+        child.visible && canViewDashboardItem(child, viewMode, viewOptions),
     );
   });
 }
@@ -37,17 +41,19 @@ export function getVisibleDashboardLinks(viewMode: DashboardViewMode) {
 function canViewDashboardItem(
   item: DashboardNavItem,
   viewMode: DashboardViewMode,
+  viewOptions: readonly DashboardViewOption[],
 ) {
   if (viewMode === "founder") return true;
-  if (!item.minimumWorkspaceRole) return true;
-  return workspaceRoleAtLeast(viewMode, item.minimumWorkspaceRole);
+  const option = viewOptions.find((candidate) => candidate.mode === viewMode);
+  return option?.permissions?.navigation.includes(item.permission) ?? false;
 }
 
 export function getDashboardRouteTitle(
   pathname: string,
   viewMode: DashboardViewMode = "founder",
+  viewOptions: readonly DashboardViewOption[] = [],
 ) {
-  const visibleLinks = getVisibleDashboardLinks(viewMode);
+  const visibleLinks = getVisibleDashboardLinks(viewMode, viewOptions);
 
   return (
     visibleLinks.find((item) => {
