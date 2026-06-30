@@ -79,6 +79,36 @@ creates a member with minimal identity information, then the invited person
 activates access through a trusted email link.
 _Avoid_: Public signup, hardcoded password, demo account
 
+**Catalog**:
+The reusable workshop library outside `src/`. It stores invariants, business
+grafts, and compositions that can be grafted into a client project during
+development and removed before staging.
+_Avoid_: Runtime dependency, production module, backup dump
+
+**Invariant**:
+A reusable rule or guarantee that can apply across several business domains.
+An **Invariant** is not a complete business feature; it describes something that
+must remain true, such as platform role separation, workspace scoping, or
+authorized workflow transitions.
+_Avoid_: Feature, page, table
+
+**Business Graft**:
+A portable package for a reusable business logic. A **Business Graft** includes
+its manifest, invariants, schemas, capabilities, role templates, navigation,
+routes, workflows, statuses, tests, and integration notes.
+_Avoid_: Backup, snippet, generic CRUD module
+
+**Composition**:
+A validated assembly of invariants and business grafts used to shape a client
+project during development. A **Composition** must be materialized into `src/`
+before staging.
+_Avoid_: Deployed client project, runtime plugin
+
+**Active Implementation**:
+The code currently integrated in `src/` and executed by the application. Active
+implementations are what remains in a client project after specialization.
+_Avoid_: Catalog entry, archive
+
 ## Flagged Ambiguities
 
 **Pilote vs. pilot project**:
@@ -126,3 +156,9 @@ Dev: "Should a client member receive a hardcoded initial password?"
 
 Domain expert: "No. Future member onboarding should use invitations or trusted
 email links, configured per client project."
+
+Dev: "Should a validated business logic stay imported from catalog in staging?"
+
+Domain expert: "No. Catalog entries are grafted into src during development.
+Before staging, the client project keeps only the active implementation in src
+and removes catalog."

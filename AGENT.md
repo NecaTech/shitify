@@ -26,8 +26,9 @@ Exemple : modifier `src/features/auth/actions.ts` implique de lire :
 Ce dépôt est le **boilerplate source** tant que `git remote get-url origin`
 contient `necatech-boilerplate`. Le boilerplate source se travaille uniquement en
 local, en mode développement. Les apports validés (features génériques, logiques
-métier réutilisables, garde-fous, tests, manifestes, règles Founder/Admin/rôles)
-restent dans ce dépôt puis sont commit/push sur son remote boilerplate.
+métier réutilisables, invariants, garde-fous, tests, manifestes, règles
+Founder/Admin/rôles) restent dans ce dépôt puis sont commit/push sur son remote
+boilerplate.
 
 Un projet client est créé depuis le template GitHub du boilerplate, avec son
 propre dépôt distant. Dans ce cas, le remote ne pointe plus vers
@@ -81,9 +82,7 @@ s'applique au boilerplate source.
 | ------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
 | Racine, package, README, config projet      | `AGENT.md`                                                                                             |
 | Documentation                               | `docs/AGENT.md`                                                                                        |
-| ADR                                         | `docs/AGENT.md`, `docs/adr/AGENT.md`                                                                   |
-| Tickets d'exécution                         | `docs/AGENT.md`, `docs/tickets/AGENT.md`                                                               |
-| Rapports d'exécution                        | `docs/AGENT.md`, `docs/reports/AGENT.md`                                                               |
+| Catalogue réutilisable                      | `catalog/AGENT.md`, puis l'`AGENT.md` local (`invariants`, `business`, `compositions`, `conventions`)  |
 | Assets statiques publics                    | `public/AGENT.md`                                                                                      |
 | Scripts Node, init, readiness, seed, Vercel | `scripts/AGENT.md`                                                                                     |
 | Routes App Router                           | `src/app/AGENT.md`                                                                                     |
@@ -97,7 +96,6 @@ s'applique au boilerplate source.
 | Layout components                           | `src/components/AGENT.md`, `src/components/layout/AGENT.md`                                            |
 | Features métier                             | `src/features/AGENT.md`, puis `src/features/<feature>/AGENT.md` si présent                             |
 | Auth feature                                | `src/features/AGENT.md`, `src/features/auth/AGENT.md`, `src/lib/auth/AGENT.md`                         |
-| Ancien CRUD configurable                    | `src/features/AGENT.md`, `docs/adr/0001-dashboard-modules-use-typed-features.md`                       |
 | Dashboard feature                           | `src/features/AGENT.md`, `src/features/dashboard/AGENT.md`                                             |
 | Booking                                     | `src/features/AGENT.md`, `src/features/booking/AGENT.md`                                               |
 | Commerce                                    | `src/features/AGENT.md`, `src/features/commerce/AGENT.md`                                              |
@@ -122,12 +120,11 @@ s'applique au boilerplate source.
 ## Routage par type de tâche
 
 - Initialiser un projet cloné : `scripts/AGENT.md`, `README.md`, `scripts/init-project.ts`.
-- Préparer ou exécuter un ticket local : `docs/AGENT.md`, `docs/tickets/AGENT.md`, puis le ticket ciblé.
-- Rédiger un rapport de ticket : `docs/AGENT.md`, `docs/reports/AGENT.md`, puis le ticket source.
-- Modifier une décision ADR : `docs/AGENT.md`, `docs/adr/AGENT.md`; ne pas réécrire un ADR accepté, créer une nouvelle décision si nécessaire.
 - Déployer ou synchroniser Vercel : `scripts/AGENT.md`, `scripts/vercel-bootstrap.ts`, `.env.example`, `src/lib/env.ts`.
 - Ajouter une route protégée : `src/app/AGENT.md`, `src/app/(authenticated)/AGENT.md`, `src/proxy.ts`.
 - Ajouter une feature typée : `src/features/AGENT.md`, `src/lib/db/AGENT.md`, puis créer `src/features/<feature>/AGENT.md` si la feature a un contrat propre.
+- Promouvoir une logique ou un invariant éprouvé vers le catalogue : `catalog/AGENT.md`, puis le sous-dossier cible.
+- Greffer une entrée du catalogue dans `src/` : lire `catalog/AGENT.md`, le contrat local du greffon/invariant, puis les `AGENT.md` de la destination `src/`.
 - Modifier un schéma : `src/features/AGENT.md`, `src/features/<feature>/AGENT.md`, `src/lib/db/AGENT.md`.
 - Modifier l'auth : `src/lib/auth/AGENT.md`, `src/features/auth/AGENT.md`, `src/proxy.ts`.
 - Modifier l'UI : `src/components/AGENT.md`, `src/styles/AGENT.md`, puis le sous-dossier local.
@@ -159,6 +156,7 @@ s'applique au boilerplate source.
 - Dashboard natif : `/dashboard` est le Pilote canonique ; ne pas créer `/dashboard/pilote`.
 - Modules dashboard : pas de CRUD générique durable ; ajouter des sections via features typées et navigation dashboard déclarative.
 - Rôles : `user.role` est réservé à l'autorité plateforme (`founder` ou `user`) ; les rôles client vivent dans `workspace_membership`.
+- Catalogue : `catalog/` est une bibliothèque de greffons, invariants et compositions réutilisables. Aucun runtime staging/prod ne doit importer depuis `catalog/`.
 
 Flux autorisés :
 

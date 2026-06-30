@@ -28,6 +28,11 @@ Ce fichier précise les contrats locaux `actions.ts`, `service.ts`, `repository.
 # Patterns
 
 - Copier la structure de `features/auth/` pour une nouvelle feature complète.
+- Développer et éprouver une logique métier active dans `src/features/<feature>/`
+  avant promotion éventuelle vers `catalog/business/<logic>/`.
+- Lors d'une promotion vers le catalogue, conserver les invariants, permissions,
+  rôles, workflows, schémas, tests et notes d'intégration nécessaires pour une
+  greffe future sans dépendance runtime à `catalog/`.
 - Config produit visible : `features/<feature>/config.ts` si assumé, pas correction cachée.
 - Cache tags partagés : les exporter depuis `cache.ts`, pas depuis `repository.ts`.
 - Reads repository : `"use cache"`, `cacheTag(...)`, `cacheLife(...)`.

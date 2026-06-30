@@ -1,6 +1,8 @@
 # NecaTech Boilerplate
 
-Production-ready Next.js fullstack starter — prêt à cloner et démarrer un projet client.
+Production-ready Next.js fullstack starter et atelier de développement de
+logiques métier réutilisables — prêt à cloner, composer et spécialiser un
+projet client.
 
 ## Stack
 
@@ -27,6 +29,30 @@ socle. Le contrat détaillé vit dans
 | `dev`        | Développement initial après clonage        | Session locale signée        | Non             |
 | `staging`    | DB client créée et URL configurée          | Better Auth + Drizzle + Neon | Oui             |
 | `production` | Projet jugé livrable et prêt à être exposé | Better Auth + Drizzle + Neon | Oui, production |
+
+### Atelier de logiques métier
+
+Le boilerplate distingue deux zones :
+
+- `src/` contient l'implémentation active exécutée par l'application.
+- `catalog/` contient la bibliothèque réutilisable : invariants, greffons métier,
+  compositions et conventions.
+
+Pendant le développement, une logique métier se construit et s'éprouve d'abord
+dans `src/features/<feature>/`, avec ses routes, services, actions, schémas,
+permissions, workflows et tests. Une fois suffisamment stable et réutilisable,
+elle peut être promue dans `catalog/business/<logic>/` sous forme de greffon
+métier greffable dans un futur projet.
+
+Les invariants transverses qui ne dépendent pas d'un métier unique vivent dans
+`catalog/invariants/`. Ils peuvent être référencés par plusieurs greffons métier
+pour éviter de dupliquer les mêmes règles d'autorisation, de workflow, de scope
+workspace, d'audit ou de cycle de vie.
+
+Règle de livraison : `catalog/` sert en développement et spécialisation, mais ne
+doit pas devenir une dépendance runtime. Avant le passage d'un projet client en
+staging, les entrées retenues doivent être matérialisées dans `src/` et
+`catalog/` doit pouvoir être supprimé du projet client.
 
 ### Phase 1 - Dev local sans DB client
 
@@ -159,6 +185,11 @@ seed avec `FOUNDER_RESET_PASSWORD=true`.
 À partir de cette phase, `/login` utilise Better Auth avec la DB. Ne pas garder
 `LOCAL_AUTH_ENABLED=true` pour valider un projet client.
 
+Avant cette bascule, spécialiser le projet : conserver dans `src/` uniquement les
+logiques, invariants matérialisés et routes retenus, puis retirer `catalog/` du
+projet client. Les schémas non retenus ne doivent pas participer à la baseline
+Drizzle de staging.
+
 ### Phase 3 - Production livrable
 
 Objectif : exposer le projet une fois le niveau livrable atteint.
@@ -212,6 +243,11 @@ Si aucune URL publique n'est fournie, le build utilise les variables système Ve
 ## Structure du projet
 
 ```
+catalog/                              # Bibliothèque réutilisable hors runtime
+├── invariants/                       # Règles transverses partagées
+├── business/                         # Greffons métier greffables dans src/features
+├── compositions/                     # Assemblages validés d'invariants et greffons
+└── conventions/                      # Formats de manifestes, permissions, workflows
 src/
 ├── app/                              # Routing uniquement — pas de logique métier
 │   ├── (authenticated)/              # Route group — toutes les routes protégées
@@ -302,6 +338,11 @@ scripts/
 └── vercel-bootstrap.ts               # Liaison Vercel, env vars, déploiement prod
 ```
 
+`catalog/` n'est pas une archive libre ni une dépendance runtime. Chaque greffon
+ou invariant doit être documenté avec un contrat d'intégration clair pour pouvoir
+être greffé dans `src/` sans deviner les fichiers, permissions, routes, schémas
+ou tests à reprendre.
+
 ## Flux de données
 
 ```
@@ -321,6 +362,12 @@ Le boilerplate inclut des schémas Drizzle réutilisables pour accélérer les p
 - `contact` — demandes entrantes, leads, messages
 - `booking` — réservations, rendez-vous, statuts
 - `commerce` — produits, commandes, lignes de commande
+
+Ces schémas sont aujourd'hui des graines techniques dans `src/features/`. Une
+logique métier complète doit aller plus loin : manifeste, invariants,
+capabilities, rôles workspace proposés, navigation, routes, workflows, statuts,
+tests et notes d'intégration. Une fois cette logique éprouvée, sa forme
+réutilisable peut être archivée dans `catalog/business/`.
 
 Tous les schémas sont exportés depuis `src/lib/db/schema.ts`. Après adaptation à un projet réel :
 

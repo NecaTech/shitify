@@ -4,7 +4,8 @@
 
 - `index.ts` — Configuration Better Auth (adapteur Drizzle, trusted origins, plugins). `'server-only'`.
 - `server.ts` — Fonctions serveur : `requireSession()`, `getOptionalSession()`. `'server-only'`.
-  - Les guards founder/workspace doivent respecter `docs/adr/0002-founder-is-platform-authority.md`.
+  - Les guards founder/workspace doivent respecter `CONTEXT.md` : Founder est
+    une autorité plateforme, les rôles workspace restent côté client.
 - `client.ts` — Client Better Auth pour les composants React (hooks `useSession`, `signIn`, etc.).
 - `local.ts` — Session locale signée pour ouvrir le dashboard du boilerplate sans
   DB client. Autorisée uniquement avec `LOCAL_AUTH_ENABLED=true` hors production.
