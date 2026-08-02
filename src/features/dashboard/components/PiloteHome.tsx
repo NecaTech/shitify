@@ -11,7 +11,10 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { DatabaseUrlKind } from "@/lib/db/database-url";
-import type { DashboardViewMode, DashboardViewOption } from "../view-mode";
+import type {
+  DashboardViewMode,
+  DashboardViewOption,
+} from "@/features/backoffice/view-mode";
 
 type PiloteHomeProps = {
   viewMode: DashboardViewMode;
@@ -120,7 +123,7 @@ function FounderPilot({
             projet.
           </p>
           <Button asChild variant="outline" className="mt-4">
-            <Link href="/dashboard/administration">
+            <Link href="/administration">
               Ouvrir
               <ArrowRight aria-hidden="true" />
             </Link>
@@ -180,7 +183,7 @@ function WorkspacePilot({ option }: { option: DashboardViewOption }) {
         </div>
         <h2 className="mt-4 text-base font-semibold">Administration</h2>
         <Button asChild variant="outline" className="mt-4">
-          <Link href="/dashboard/administration">
+          <Link href="/administration">
             Ouvrir
             <ArrowRight aria-hidden="true" />
           </Link>
@@ -242,7 +245,7 @@ function AdminPilot() {
             Créez, modifiez ou supprimez les membres et assignez leurs rôles.
           </p>
           <Button asChild variant="outline" className="mt-4">
-            <Link href="/dashboard/administration">
+            <Link href="/administration">
               Ouvrir
               <ArrowRight aria-hidden="true" />
             </Link>

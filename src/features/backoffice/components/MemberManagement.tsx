@@ -3,44 +3,62 @@
 import { useState, useTransition } from "react";
 import type { FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { BriefcaseBusiness, Settings2, Trash2, X } from "lucide-react";
+import { Settings2, Trash2, UserPlus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  createWorkspaceAction,
-  deleteWorkspaceAction,
-  updateWorkspaceAction,
+  createWorkspaceMemberAction,
+  deleteWorkspaceMemberAction,
+  updateWorkspaceMemberAction,
 } from "@/features/workspace/actions";
-import type { WorkspaceSummary } from "@/features/workspace/types";
+import type {
+  WorkspaceCustomRoleSummary,
+  WorkspaceMemberRoleSummary,
+  WorkspaceSummary,
+} from "@/features/workspace/types";
 import { ConfirmDialog } from "./ConfirmDialog";
 
-type WorkspaceManagementProps = {
-  workspaces: WorkspaceSummary[];
+type MemberManagementProps = {
+  workspace: WorkspaceSummary;
+  members: WorkspaceMemberRoleSummary[];
+  customRoles: WorkspaceCustomRoleSummary[];
 };
 
-type EditingWorkspace = WorkspaceSummary | null;
+type EditingMember = WorkspaceMemberRoleSummary | null;
 
-export function WorkspaceManagement({ workspaces }: WorkspaceManagementProps) {
+export function MemberManagement({
+  workspace,
+  members,
+  customRoles,
+}: MemberManagementProps) {
   const router = useRouter();
-  const [editingWorkspace, setEditingWorkspace] =
-    useState<EditingWorkspace>(null);
+  const [editingMember, setEditingMember] = useState<EditingMember>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [initialPassword, setInitialPassword] = useState("");
+  const [customRoleId, setCustomRoleId] = useState("");
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   function openCreateDialog() {
-    setEditingWorkspace(null);
+    setEditingMember(null);
     setName("");
+    setEmail("");
+    setInitialPassword("");
+    setCustomRoleId("");
     setIsConfirmingDelete(false);
     setError(null);
     setIsOpen(true);
   }
 
-  function openWorkspaceDialog(workspace: WorkspaceSummary) {
-    setEditingWorkspace(workspace);
-    setName(workspace.name);
+  function openMemberDialog(member: WorkspaceMemberRoleSummary) {
+    setEditingMember(member);
+    setName(member.name);
+    setEmail(member.email);
+    setInitialPassword("");
+    setCustomRoleId(member.customRoleId ?? "");
     setIsConfirmingDelete(false);
     setError(null);
     setIsOpen(true);
@@ -58,12 +76,21 @@ export function WorkspaceManagement({ workspaces }: WorkspaceManagementProps) {
     setError(null);
 
     startTransition(async () => {
-      const result = editingWorkspace
-        ? await updateWorkspaceAction({
-            workspaceId: editingWorkspace.id,
-            name,
+      const payload = {
+        workspaceId: workspace.id,
+        name,
+        email,
+        customRoleId,
+      };
+      const result = editingMember
+        ? await updateWorkspaceMemberAction({
+            ...payload,
+            membershipId: editingMember.membershipId,
           })
-        : await createWorkspaceAction({ name });
+        : await createWorkspaceMemberAction({
+            ...payload,
+            initialPassword,
+          });
 
       if (!result.success) {
         setError(result.error);
@@ -76,12 +103,12 @@ export function WorkspaceManagement({ workspaces }: WorkspaceManagementProps) {
   }
 
   function handleDelete() {
-    if (!editingWorkspace) return;
+    if (!editingMember) return;
     setError(null);
 
     startTransition(async () => {
-      const result = await deleteWorkspaceAction({
-        workspaceId: editingWorkspace.id,
+      const result = await deleteWorkspaceMemberAction({
+        membershipId: editingMember.membershipId,
       });
       if (!result.success) {
         setError(result.error);
@@ -98,32 +125,33 @@ export function WorkspaceManagement({ workspaces }: WorkspaceManagementProps) {
     <div className="grid gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-base font-semibold">Workspaces</h2>
+          <h2 className="text-base font-semibold">Membres</h2>
           <p className="text-muted-foreground mt-1 text-sm">
-            Créez et configurez les espaces de travail disponibles.
+            Créez les membres de la workspace du projet et assignez-leur un rôle
+            métier.
           </p>
         </div>
         <Button type="button" onClick={openCreateDialog}>
-          <BriefcaseBusiness aria-hidden="true" />
-          Créer un workspace
+          <UserPlus aria-hidden="true" />
+          Créer un membre
         </Button>
       </div>
 
-      {workspaces.length > 0 ? (
+      {members.length > 0 ? (
         <div className="grid gap-2">
-          {workspaces.map((workspace) => (
+          {members.map((member) => (
             <button
-              key={workspace.id}
+              key={member.membershipId}
               type="button"
-              onClick={() => openWorkspaceDialog(workspace)}
+              onClick={() => openMemberDialog(member)}
               className="border-border hover:bg-muted focus-visible:border-ring focus-visible:ring-ring/50 flex min-h-12 items-center justify-between gap-3 rounded-lg border px-3 py-2 text-left text-sm transition-colors outline-none focus-visible:ring-3"
             >
               <span className="min-w-0">
                 <span className="block truncate font-medium">
-                  {workspace.name}
+                  {member.name}
                 </span>
                 <span className="text-muted-foreground mt-0.5 block text-xs">
-                  {workspace.slug}
+                  {member.email}
                 </span>
               </span>
               <Settings2
@@ -135,7 +163,7 @@ export function WorkspaceManagement({ workspaces }: WorkspaceManagementProps) {
         </div>
       ) : (
         <p className="text-muted-foreground text-sm">
-          Aucun workspace n'est encore enregistré.
+          Aucun membre workspace n'est encore enregistré.
         </p>
       )}
 
@@ -144,17 +172,12 @@ export function WorkspaceManagement({ workspaces }: WorkspaceManagementProps) {
           <div
             role="dialog"
             aria-modal="true"
-            aria-labelledby="workspace-dialog-title"
+            aria-labelledby="member-dialog-title"
             className="bg-card text-card-foreground border-border w-full max-w-xl rounded-lg border shadow-lg"
           >
             <div className="border-border flex items-center justify-between gap-3 border-b px-5 py-4">
-              <h3
-                id="workspace-dialog-title"
-                className="text-base font-semibold"
-              >
-                {editingWorkspace
-                  ? "Configurer le workspace"
-                  : "Créer un workspace"}
+              <h3 id="member-dialog-title" className="text-base font-semibold">
+                {editingMember ? "Configurer le membre" : "Créer un membre"}
               </h3>
               <Button
                 type="button"
@@ -169,11 +192,11 @@ export function WorkspaceManagement({ workspaces }: WorkspaceManagementProps) {
 
             <form onSubmit={handleSubmit} className="grid gap-4 p-5">
               <div className="grid gap-1">
-                <label htmlFor="workspace-name" className="text-sm font-medium">
+                <label htmlFor="member-name" className="text-sm font-medium">
                   Nom
                 </label>
                 <Input
-                  id="workspace-name"
+                  id="member-name"
                   type="text"
                   required
                   value={name}
@@ -181,12 +204,63 @@ export function WorkspaceManagement({ workspaces }: WorkspaceManagementProps) {
                 />
               </div>
 
+              <div className="grid gap-1">
+                <label htmlFor="member-email" className="text-sm font-medium">
+                  Email
+                </label>
+                <Input
+                  id="member-email"
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                />
+              </div>
+
+              {!editingMember ? (
+                <div className="grid gap-1">
+                  <label
+                    htmlFor="member-password"
+                    className="text-sm font-medium"
+                  >
+                    Mot de passe initial
+                  </label>
+                  <Input
+                    id="member-password"
+                    type="password"
+                    required
+                    minLength={12}
+                    value={initialPassword}
+                    onChange={(event) => setInitialPassword(event.target.value)}
+                  />
+                </div>
+              ) : null}
+
+              <div className="grid gap-1">
+                <label htmlFor="member-role" className="text-sm font-medium">
+                  Rôle métier
+                </label>
+                <select
+                  id="member-role"
+                  value={customRoleId}
+                  onChange={(event) => setCustomRoleId(event.target.value)}
+                  className="border-input bg-background focus-visible:border-ring focus-visible:ring-ring/50 h-8 w-full rounded-lg border px-2.5 py-1 text-sm outline-none focus-visible:ring-3"
+                >
+                  <option value="">Aucun rôle</option>
+                  {customRoles.map((role) => (
+                    <option key={role.id} value={role.id}>
+                      {role.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               {error ? (
                 <p className="text-destructive text-sm">{error}</p>
               ) : null}
 
               <div className="flex flex-wrap justify-between gap-2">
-                {editingWorkspace ? (
+                {editingMember ? (
                   <Button
                     type="button"
                     variant="destructive"
@@ -211,19 +285,19 @@ export function WorkspaceManagement({ workspaces }: WorkspaceManagementProps) {
                   <Button type="submit" disabled={isPending}>
                     {isPending
                       ? "Enregistrement..."
-                      : editingWorkspace
+                      : editingMember
                         ? "Enregistrer"
-                        : "Créer le workspace"}
+                        : "Créer le membre"}
                   </Button>
                 </div>
               </div>
             </form>
           </div>
 
-          {isConfirmingDelete && editingWorkspace ? (
+          {isConfirmingDelete && editingMember ? (
             <ConfirmDialog
-              title="Supprimer ce workspace ?"
-              description={`Le workspace ${editingWorkspace.name}, ses rôles et ses rattachements seront supprimés.`}
+              title="Supprimer ce membre ?"
+              description={`Le membre ${editingMember.name} sera retiré du workspace.`}
               disabled={isPending}
               onCancel={() => setIsConfirmingDelete(false)}
               onConfirm={handleDelete}

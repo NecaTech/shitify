@@ -59,7 +59,7 @@ async function main() {
     await page
       .getByRole("heading", { name: "Vue admin" })
       .waitFor({ timeout: 10_000 });
-    await page.goto(`${baseUrl}/dashboard/administration`, {
+    await page.goto(`${baseUrl}/administration`, {
       waitUntil: "networkidle",
     });
     await page

@@ -49,6 +49,9 @@ work on the source boilerplate itself.
   not redefine `user.role`.
 - `/dashboard` is the canonical `Pilote` home. Do not create `/dashboard/pilote` or use
   “projet pilote” as a synonym for a client project.
+- `backoffice` désigne l’espace privé global ; `dashboard` désigne exclusivement sa
+  vue de synthèse générale ; `backend` désigne les couches techniques serveur ;
+  `authenticated` décrit uniquement une contrainte d’accès.
 - Never hardcode a secret, production URL, user identifier, role, permission, DB value,
   API result, or test result to bypass an invariant.
 

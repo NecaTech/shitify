@@ -134,7 +134,7 @@ export async function createWorkspaceAdminAction(
       actorRole: session.user.role,
       ...parsed.data,
     });
-    revalidatePath("/dashboard/administration");
+    revalidatePath("/administration");
     return { success: true, data: result };
   } catch (err) {
     logger.error({ err }, "createWorkspaceAdminAction failed");
@@ -176,7 +176,7 @@ export async function updateWorkspaceAdminAction(
       actorRole: session.user.role,
       ...parsed.data,
     });
-    revalidatePath("/dashboard/administration");
+    revalidatePath("/administration");
     return { success: true, data: result };
   } catch (err) {
     logger.error({ err }, "updateWorkspaceAdminAction failed");
@@ -220,7 +220,7 @@ export async function deleteWorkspaceAdminAction(
       actorRole: session.user.role,
       ...parsed.data,
     });
-    revalidatePath("/dashboard/administration");
+    revalidatePath("/administration");
     return { success: true, data: result };
   } catch (err) {
     logger.error({ err }, "deleteWorkspaceAdminAction failed");
@@ -266,7 +266,7 @@ export async function createWorkspaceMemberAction(
       ...parsed.data,
       customRoleId: parsed.data.customRoleId || null,
     });
-    revalidatePath("/dashboard/administration");
+    revalidatePath("/administration");
     return { success: true, data: result };
   } catch (err) {
     logger.error({ err }, "createWorkspaceMemberAction failed");
@@ -310,7 +310,7 @@ export async function updateWorkspaceMemberAction(
       ...parsed.data,
       customRoleId: parsed.data.customRoleId || null,
     });
-    revalidatePath("/dashboard/administration");
+    revalidatePath("/administration");
     return { success: true, data: result };
   } catch (err) {
     logger.error({ err }, "updateWorkspaceMemberAction failed");
@@ -355,7 +355,7 @@ export async function deleteWorkspaceMemberAction(
       actorUserId: session.user.id,
       ...parsed.data,
     });
-    revalidatePath("/dashboard/administration");
+    revalidatePath("/administration");
     return { success: true, data: result };
   } catch (err) {
     logger.error({ err }, "deleteWorkspaceMemberAction failed");
@@ -399,7 +399,7 @@ export async function createWorkspaceAction(
       name: parsed.data.name,
     });
     revalidatePath("/dashboard");
-    revalidatePath("/dashboard/administration");
+    revalidatePath("/administration");
     return { success: true, data: result };
   } catch (err) {
     logger.error({ err }, "createWorkspaceAction failed");
@@ -444,7 +444,7 @@ export async function updateWorkspaceAction(
       name: parsed.data.name,
     });
     revalidatePath("/dashboard");
-    revalidatePath("/dashboard/administration");
+    revalidatePath("/administration");
     return { success: true, data: result };
   } catch (err) {
     logger.error({ err }, "updateWorkspaceAction failed");
@@ -489,7 +489,7 @@ export async function deleteWorkspaceAction(
       workspaceId: parsed.data.workspaceId,
     });
     revalidatePath("/dashboard");
-    revalidatePath("/dashboard/administration");
+    revalidatePath("/administration");
     return { success: true, data: result };
   } catch (err) {
     logger.error({ err }, "deleteWorkspaceAction failed");
@@ -522,7 +522,7 @@ export async function assignWorkspaceMemberRoleAction(
       actorUserId: session.user.id,
       ...parsed.data,
     });
-    revalidatePath("/dashboard/administration");
+    revalidatePath("/administration");
     return { success: true, data: result };
   } catch (err) {
     logger.error({ err }, "assignWorkspaceMemberRoleAction failed");
@@ -571,7 +571,7 @@ export async function createWorkspaceCustomRoleAction(
       permissions: { navigation: parsed.data.navigation },
     });
     revalidatePath("/dashboard");
-    revalidatePath("/dashboard/administration");
+    revalidatePath("/administration");
     return { success: true, data: result };
   } catch (err) {
     logger.error({ err }, "createWorkspaceCustomRoleAction failed");
@@ -619,7 +619,7 @@ export async function updateWorkspaceCustomRoleAction(
       permissions: { navigation: parsed.data.navigation },
     });
     revalidatePath("/dashboard");
-    revalidatePath("/dashboard/administration");
+    revalidatePath("/administration");
     return { success: true, data: result };
   } catch (err) {
     logger.error({ err }, "updateWorkspaceCustomRoleAction failed");
@@ -663,7 +663,7 @@ export async function deleteWorkspaceCustomRoleAction(
       roleId: parsed.data.roleId,
     });
     revalidatePath("/dashboard");
-    revalidatePath("/dashboard/administration");
+    revalidatePath("/administration");
     return { success: true, data: result };
   } catch (err) {
     logger.error({ err }, "deleteWorkspaceCustomRoleAction failed");
@@ -707,7 +707,7 @@ export async function assignWorkspaceMemberCustomRoleAction(
       actorUserId: session.user.id,
       ...parsed.data,
     });
-    revalidatePath("/dashboard/administration");
+    revalidatePath("/administration");
     return { success: true, data: result };
   } catch (err) {
     logger.error({ err }, "assignWorkspaceMemberCustomRoleAction failed");

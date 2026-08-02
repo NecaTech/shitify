@@ -4,10 +4,11 @@ import { describe, expect, it } from "vitest";
 import {
   dashboardNavigation,
   getDashboardRouteTitle,
+  getVisibleDashboardNavigation,
   getVisibleDashboardLinks,
-} from "@/features/dashboard/config";
-import { shouldLoadFounderWorkspaceRoles } from "@/features/dashboard/workspace-role-loading";
-import type { DashboardViewOption } from "@/features/dashboard/view-mode";
+} from "@/features/backoffice/config";
+import { shouldLoadFounderWorkspaceRoles } from "@/features/backoffice/workspace-role-loading";
+import type { DashboardViewOption } from "@/features/backoffice/view-mode";
 
 const viewOptions: DashboardViewOption[] = [
   { mode: "founder", label: "Founder", permissions: null },
@@ -15,6 +16,11 @@ const viewOptions: DashboardViewOption[] = [
     mode: "admin",
     label: "Admin",
     permissions: { navigation: ["dashboard", "administration"] },
+  },
+  {
+    mode: "member",
+    label: "Member",
+    permissions: { navigation: ["dashboard"] },
   },
   {
     mode: "role:operations",
@@ -35,8 +41,32 @@ describe("dashboard navigation", () => {
   it("exposes only the native dashboard sections", () => {
     expect(flattenVisibleLinks().map((item) => item.href)).toEqual([
       "/dashboard",
-      "/dashboard/administration",
+      "/administration",
     ]);
+  });
+
+  it("preserves route groups and removes groups with no permitted route", () => {
+    expect(
+      getVisibleDashboardNavigation("admin", viewOptions).map((item) => ({
+        type: item.type,
+        label: item.label,
+        items:
+          item.type === "group" ? item.items.map((child) => child.href) : [],
+      })),
+    ).toEqual([
+      { type: "link", label: "Pilote", items: [] },
+      {
+        type: "group",
+        label: "Gestion",
+        items: ["/administration"],
+      },
+    ]);
+
+    expect(
+      getVisibleDashboardNavigation("role:operations", viewOptions).map(
+        (item) => item.label,
+      ),
+    ).toEqual(["Pilote"]);
   });
 
   it("does not require a separate Pilote route or the removed CRUD route", () => {
@@ -44,12 +74,12 @@ describe("dashboard navigation", () => {
 
     expect(
       existsSync(
-        join(repoRoot, "src/app/(authenticated)/dashboard/pilote/page.tsx"),
+        join(repoRoot, "src/app/(backoffice)/dashboard/pilote/page.tsx"),
       ),
     ).toBe(false);
     expect(
       existsSync(
-        join(repoRoot, "src/app/(authenticated)/dashboard/crud/page.tsx"),
+        join(repoRoot, "src/app/(backoffice)/dashboard/crud/page.tsx"),
       ),
     ).toBe(false);
     expect(existsSync(join(repoRoot, "src/features/crud"))).toBe(false);
@@ -57,10 +87,8 @@ describe("dashboard navigation", () => {
 
   it("resolves compact route titles from the centralized nav config", () => {
     expect(getDashboardRouteTitle("/dashboard")).toBe("Pilote");
-    expect(getDashboardRouteTitle("/dashboard/administration")).toBe(
-      "Administration",
-    );
-    expect(getDashboardRouteTitle("/dashboard/administration/membres")).toBe(
+    expect(getDashboardRouteTitle("/administration")).toBe("Administration");
+    expect(getDashboardRouteTitle("/administration/membres")).toBe(
       "Administration",
     );
   });
@@ -68,21 +96,17 @@ describe("dashboard navigation", () => {
   it("filters administration views by explored workspace role", () => {
     expect(
       getVisibleDashboardLinks("founder", viewOptions).map((item) => item.href),
-    ).toEqual(["/dashboard", "/dashboard/administration"]);
+    ).toEqual(["/dashboard", "/administration"]);
     expect(
       getVisibleDashboardLinks("admin", viewOptions).map((item) => item.href),
-    ).toEqual(["/dashboard", "/dashboard/administration"]);
+    ).toEqual(["/dashboard", "/administration"]);
     expect(
       getVisibleDashboardLinks("role:operations", viewOptions).map(
         (item) => item.href,
       ),
     ).toEqual(["/dashboard"]);
     expect(
-      getDashboardRouteTitle(
-        "/dashboard/administration",
-        "role:operations",
-        viewOptions,
-      ),
+      getDashboardRouteTitle("/administration", "role:operations", viewOptions),
     ).toBe("Dashboard");
   });
 

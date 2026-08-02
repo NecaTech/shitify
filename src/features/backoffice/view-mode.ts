@@ -3,7 +3,11 @@ import { cookies } from "next/headers";
 import type { WorkspaceCustomRoleSummary } from "@/features/workspace/types";
 
 export const DASHBOARD_VIEW_COOKIE = "necatech_dashboard_view";
-export type DashboardViewMode = "founder" | "admin" | `role:${string}`;
+export type DashboardViewMode =
+  | "founder"
+  | "admin"
+  | "member"
+  | `role:${string}`;
 
 export type DashboardViewOption = {
   mode: DashboardViewMode;
@@ -22,6 +26,11 @@ export const baseDashboardViewOptions = [
     label: "Admin",
     permissions: { navigation: ["dashboard", "administration"] },
   },
+  {
+    mode: "member",
+    label: "Member",
+    permissions: { navigation: ["dashboard"] },
+  },
 ] as const satisfies readonly DashboardViewOption[];
 
 export function isDashboardViewMode(
@@ -30,6 +39,7 @@ export function isDashboardViewMode(
   return (
     value === "founder" ||
     value === "admin" ||
+    value === "member" ||
     (typeof value === "string" && value.startsWith("role:"))
   );
 }
@@ -54,7 +64,10 @@ export async function getDashboardViewMode({
   isFounder: boolean;
   roles?: WorkspaceCustomRoleSummary[];
 }): Promise<DashboardViewMode> {
-  if (!isFounder) return "admin";
+  // A platform user is never implicitly a workspace admin. Until its active
+  // workspace membership is resolved, it receives only the fail-closed member
+  // perspective.
+  if (!isFounder) return "member";
 
   const cookieStore = await cookies();
   const value = cookieStore.get(DASHBOARD_VIEW_COOKIE)?.value;

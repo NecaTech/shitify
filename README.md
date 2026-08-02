@@ -250,13 +250,12 @@ catalog/                              # Bibliothèque réutilisable hors runtime
 └── conventions/                      # Formats de manifestes, permissions, workflows
 src/
 ├── app/                              # Routing uniquement — pas de logique métier
-│   ├── (authenticated)/              # Route group — toutes les routes protégées
-│   │   ├── layout.tsx                # Appelle requireSession() une seule fois pour le groupe
+│   ├── (backoffice)/                 # Espace privé global du back-office
+│   │   ├── layout.tsx                # Authentification et shell privé communs
+│   │   ├── administration/
+│   │   │   └── page.tsx              # Module d'administration
 │   │   └── dashboard/
-│   │       ├── layout.tsx            # Shell dashboard natif
 │   │       ├── page.tsx              # Pilote, accueil privé canonique
-│   │       └── administration/
-│   │           └── page.tsx          # Placeholder initial pour future administration
 │   ├── api/
 │   │   └── auth/
 │   │       └── [...all]/
@@ -289,8 +288,8 @@ src/
 │   ├── booking/schema.ts             # Réservations / rendez-vous
 │   ├── commerce/schema.ts            # Produits, commandes, lignes de commande
 │   ├── contact/schema.ts             # Formulaires de contact / leads
-│   ├── dashboard/                    # Shell dashboard natif et navigation déclarative
-│   │   ├── config.ts                 # Liens/groupes dashboard typés
+│   ├── backoffice/                   # Shell privé, navigation et exploitation
+│   │   ├── config.ts                 # Navigation générale du back-office
 │   │   └── components/
 │   │       ├── DashboardShell.tsx
 │   │       ├── DashboardNav.tsx
@@ -399,11 +398,12 @@ un shell dashboard natif avec sidebar desktop, navigation mobile basse, header
 compact, nom utilisateur, badge founder quand `session.user.role` vaut
 `founder`, et action de déconnexion.
 
-`/dashboard/administration` existe comme placeholder initial. Il prépare la zone
+`/administration` existe comme placeholder initial. Il prépare la zone
 où vivront de futures fonctions d'administration, mais il ne crée pas encore de
 membres, n'envoie pas d'invitations et n'intègre pas de provider email.
 
-La navigation dashboard vit dans `src/features/dashboard/config.ts`. Les
+La navigation générale du back-office vit dans `src/features/backoffice/config.ts`.
+La vue de synthèse Pilote reste dans `src/features/dashboard/`. Les
 sections futures s'ajoutent avec des routes dédiées et des features typées
 (`schema.ts`, `repository.ts`, `service.ts`, `actions.ts`, `types.ts`), puis une
 entrée de navigation déclarative. Le boilerplate ne fournit plus de CRUD

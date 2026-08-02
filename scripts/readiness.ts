@@ -145,7 +145,7 @@ function getPackageScripts() {
 }
 
 function getAuthenticatedRoutes(): string[] {
-  const dir = join(root, "src/app/(authenticated)");
+  const dir = join(root, "src/app/(backoffice)");
   if (!existsSync(dir)) return [];
 
   return readdirSync(dir)

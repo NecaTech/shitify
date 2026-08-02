@@ -2,7 +2,9 @@ import { type NextRequest, NextResponse } from "next/server";
 import { getSessionCookie } from "better-auth/cookies";
 import { LOCAL_AUTH_COOKIE_NAME } from "@/lib/auth/local-cookie";
 
-const protectedRoutes = ["/dashboard"] as const;
+// Route groups are invisible in URLs: keep the private URL registry here.
+// Add each new back-office module prefix to both arrays when it is introduced.
+const protectedRoutes = ["/dashboard", "/administration"] as const;
 const authRoutes = ["/login", "/register"] as const;
 
 export function proxy(request: NextRequest) {
@@ -41,5 +43,10 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/login", "/register"],
+  matcher: [
+    "/dashboard/:path*",
+    "/administration/:path*",
+    "/login",
+    "/register",
+  ],
 };

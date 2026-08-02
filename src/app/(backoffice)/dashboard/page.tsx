@@ -3,11 +3,11 @@ import { PiloteHome } from "@/features/dashboard/components/PiloteHome";
 import {
   getDashboardViewMode,
   getDashboardViewOptions,
-} from "@/features/dashboard/view-mode";
+} from "@/features/backoffice/view-mode";
 import {
   loadFounderWorkspaceRolesSafely,
   shouldLoadFounderWorkspaceRoles,
-} from "@/features/dashboard/workspace-role-loading";
+} from "@/features/backoffice/workspace-role-loading";
 import { isLocalAuthEnabled } from "@/lib/auth/local";
 import { isFounder, isPlatformRole } from "@/lib/auth/roles";
 import { requireSession } from "@/lib/auth/server";

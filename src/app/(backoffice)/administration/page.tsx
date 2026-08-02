@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
-import { AdministrationPlaceholder } from "@/features/dashboard/components/AdministrationPlaceholder";
+import { notFound } from "next/navigation";
+import { AdministrationPlaceholder } from "@/features/backoffice/components/AdministrationPlaceholder";
+import { canViewDashboardPermission } from "@/features/backoffice/config";
 import {
   getDashboardViewMode,
   getDashboardViewOptions,
-} from "@/features/dashboard/view-mode";
-import { loadAdministrationWorkspaceDataSafely } from "@/features/dashboard/workspace-role-loading";
+} from "@/features/backoffice/view-mode";
+import { loadAdministrationWorkspaceDataSafely } from "@/features/backoffice/workspace-role-loading";
 import { isFounder, isPlatformRole } from "@/lib/auth/roles";
 import { requireSession } from "@/lib/auth/server";
 import { env } from "@/lib/env";
@@ -20,8 +22,7 @@ export default async function AdministrationPage() {
   const canPersistRoles = env.APP_ENV !== "prod" && Boolean(env.DATABASE_URL);
   const canCreateRoles = founder && canPersistRoles;
   const canManageAdmins = founder && canPersistRoles;
-  const canManageWorkspaces = founder && canPersistRoles;
-  const { workspaces, customRoles, members } =
+  const { workspace, customRoles, members } =
     await loadAdministrationWorkspaceDataSafely({
       enabled: canPersistRoles,
       actorRole: platformUser?.role ?? "user",
@@ -33,25 +34,23 @@ export default async function AdministrationPage() {
   });
   const isFounderAdministration = founder && viewMode === "founder";
   const viewOptions = getDashboardViewOptions(customRoles);
+  if (!canViewDashboardPermission("administration", viewMode, viewOptions)) {
+    notFound();
+  }
   const admins = members.filter((member) => member.bootstrapRole === "admin");
   const AdminManagement =
-    isFounderAdministration && canManageAdmins && workspaces.length > 0
-      ? (await import("@/features/dashboard/components/AdminManagement"))
+    isFounderAdministration && canManageAdmins && workspace
+      ? (await import("@/features/backoffice/components/AdminManagement"))
           .AdminManagement
       : null;
-  const WorkspaceManagement =
-    isFounderAdministration && canManageWorkspaces
-      ? (await import("@/features/dashboard/components/WorkspaceManagement"))
-          .WorkspaceManagement
-      : null;
   const RoleManagement =
-    isFounderAdministration && canCreateRoles && workspaces.length > 0
-      ? (await import("@/features/dashboard/components/RoleManagement"))
+    isFounderAdministration && canCreateRoles && workspace
+      ? (await import("@/features/backoffice/components/RoleManagement"))
           .RoleManagement
       : null;
   const MemberManagement =
-    !isFounderAdministration && canPersistRoles && workspaces.length > 0
-      ? (await import("@/features/dashboard/components/MemberManagement"))
+    !isFounderAdministration && canPersistRoles && workspace
+      ? (await import("@/features/backoffice/components/MemberManagement"))
           .MemberManagement
       : null;
   const workspaceMembers = members.filter(
@@ -63,15 +62,13 @@ export default async function AdministrationPage() {
       isFounder={isFounderAdministration}
       viewMode={viewMode}
       viewOptions={viewOptions}
-      canCreateRoles={canCreateRoles}
       canPersistRoles={canPersistRoles}
       canManageAdmins={canManageAdmins}
-      canManageWorkspaces={canManageWorkspaces}
-      workspaces={workspaces}
+      workspace={workspace}
       memberManagement={
         MemberManagement ? (
           <MemberManagement
-            workspaces={workspaces}
+            workspace={workspace!}
             members={workspaceMembers}
             customRoles={customRoles}
           />
@@ -79,17 +76,12 @@ export default async function AdministrationPage() {
       }
       adminManagement={
         AdminManagement ? (
-          <AdminManagement workspaces={workspaces} admins={admins} />
-        ) : null
-      }
-      workspaceManagement={
-        WorkspaceManagement ? (
-          <WorkspaceManagement workspaces={workspaces} />
+          <AdminManagement workspace={workspace!} admins={admins} />
         ) : null
       }
       roleManagement={
         RoleManagement ? (
-          <RoleManagement workspaces={workspaces} customRoles={customRoles} />
+          <RoleManagement workspace={workspace!} customRoles={customRoles} />
         ) : null
       }
     />

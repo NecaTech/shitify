@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import type { FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Settings2, ShieldPlus, Trash2, X } from "lucide-react";
@@ -19,7 +19,7 @@ import type {
 import { ConfirmDialog } from "./ConfirmDialog";
 
 type RoleManagementProps = {
-  workspaces: WorkspaceSummary[];
+  workspace: WorkspaceSummary;
   customRoles: WorkspaceCustomRoleSummary[];
 };
 
@@ -42,13 +42,12 @@ function getInitialNavigation(
 }
 
 export function RoleManagement({
-  workspaces,
+  workspace,
   customRoles,
 }: RoleManagementProps) {
   const router = useRouter();
   const [editingRole, setEditingRole] = useState<EditingRole>(null);
   const [isOpen, setIsOpen] = useState(false);
-  const [workspaceId, setWorkspaceId] = useState(workspaces[0]?.id ?? "");
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [navigation, setNavigation] = useState<DashboardNavigationPermission[]>(
@@ -58,14 +57,8 @@ export function RoleManagement({
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  const workspaceById = useMemo(
-    () => new Map(workspaces.map((workspace) => [workspace.id, workspace])),
-    [workspaces],
-  );
-
   function openCreateDialog() {
     setEditingRole(null);
-    setWorkspaceId(workspaces[0]?.id ?? "");
     setName("");
     setDescription("");
     setNavigation(["dashboard"]);
@@ -76,7 +69,6 @@ export function RoleManagement({
 
   function openRoleDialog(role: WorkspaceCustomRoleSummary) {
     setEditingRole(role);
-    setWorkspaceId(role.workspaceId);
     setName(role.name);
     setDescription(role.description ?? "");
     setNavigation(getInitialNavigation(role));
@@ -108,7 +100,7 @@ export function RoleManagement({
 
     startTransition(async () => {
       const payload = {
-        workspaceId,
+        workspaceId: workspace.id,
         name,
         description,
         navigation,
@@ -150,7 +142,6 @@ export function RoleManagement({
   }
 
   const title = editingRole ? "Configurer le rôle" : "Créer un rôle";
-  const selectedWorkspace = workspaceById.get(workspaceId);
 
   return (
     <div className="grid gap-4">
@@ -162,11 +153,7 @@ export function RoleManagement({
             dashboard.
           </p>
         </div>
-        <Button
-          type="button"
-          onClick={openCreateDialog}
-          disabled={workspaces.length === 0}
-        >
+        <Button type="button" onClick={openCreateDialog}>
           <ShieldPlus aria-hidden="true" />
           Créer un rôle
         </Button>
@@ -184,8 +171,7 @@ export function RoleManagement({
               <span className="min-w-0">
                 <span className="block truncate font-medium">{role.name}</span>
                 <span className="text-muted-foreground mt-0.5 block text-xs">
-                  {workspaceById.get(role.workspaceId)?.name ?? "Workspace"} ·{" "}
-                  {role.permissions.navigation.join(", ")}
+                  {workspace.name} · {role.permissions.navigation.join(", ")}
                 </span>
               </span>
               <Settings2
@@ -217,11 +203,9 @@ export function RoleManagement({
                 <h3 id="role-dialog-title" className="text-base font-semibold">
                   {title}
                 </h3>
-                {selectedWorkspace ? (
-                  <p className="text-muted-foreground mt-1 text-xs">
-                    Workspace: {selectedWorkspace.name}
-                  </p>
-                ) : null}
+                <p className="text-muted-foreground mt-1 text-xs">
+                  Workspace du projet : {workspace.name}
+                </p>
               </div>
               <Button
                 type="button"
@@ -235,26 +219,6 @@ export function RoleManagement({
             </div>
 
             <form onSubmit={handleSubmit} className="grid gap-4 p-5">
-              <div className="grid gap-1">
-                <label htmlFor="role-workspace" className="text-sm font-medium">
-                  Workspace
-                </label>
-                <select
-                  id="role-workspace"
-                  required
-                  value={workspaceId}
-                  disabled={Boolean(editingRole)}
-                  onChange={(event) => setWorkspaceId(event.target.value)}
-                  className="border-input bg-background focus-visible:border-ring focus-visible:ring-ring/50 disabled:bg-input/50 h-8 w-full rounded-lg border px-2.5 py-1 text-sm outline-none focus-visible:ring-3 disabled:cursor-not-allowed disabled:opacity-70"
-                >
-                  {workspaces.map((workspace) => (
-                    <option key={workspace.id} value={workspace.id}>
-                      {workspace.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
               <div className="grid gap-1">
                 <label htmlFor="role-name" className="text-sm font-medium">
                   Nom du rôle
@@ -329,10 +293,7 @@ export function RoleManagement({
                   >
                     Annuler
                   </Button>
-                  <Button
-                    type="submit"
-                    disabled={isPending || workspaces.length === 0}
-                  >
+                  <Button type="submit" disabled={isPending}>
                     {isPending
                       ? "Enregistrement..."
                       : editingRole

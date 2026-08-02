@@ -5,12 +5,12 @@ type DashboardNavBase = {
   label: string;
   icon: LucideIcon;
   visible: boolean;
-  permission: DashboardNavigationPermission;
 };
 
 export type DashboardNavLink = DashboardNavBase & {
   type: "link";
   href: string;
+  permission: DashboardNavigationPermission;
 };
 
 export type DashboardNavGroup = DashboardNavBase & {

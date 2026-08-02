@@ -9,7 +9,7 @@
 ## Auth
 
 - Les layouts visuels ne décident pas de l'autorisation.
-- La protection reste dans `src/app/(authenticated)` et `src/lib/auth/server.ts`.
+- La protection reste dans `src/app/(backoffice)` et `src/lib/auth/server.ts`.
 
 ## Anti-contournement
 

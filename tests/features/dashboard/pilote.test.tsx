@@ -3,7 +3,7 @@
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import { PiloteHome } from "@/features/dashboard/components/PiloteHome";
-import type { DashboardViewOption } from "@/features/dashboard/view-mode";
+import type { DashboardViewOption } from "@/features/backoffice/view-mode";
 
 const viewOptions: DashboardViewOption[] = [
   { mode: "founder", label: "Founder", permissions: null },

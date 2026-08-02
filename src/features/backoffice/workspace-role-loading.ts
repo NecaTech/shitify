@@ -34,7 +34,7 @@ export async function loadAdministrationWorkspaceDataSafely({
   actorRole: "founder" | "user";
   actorUserId: string;
 }) {
-  if (!enabled) return { workspaces: [], customRoles: [], members: [] };
+  if (!enabled) return { workspace: null, customRoles: [], members: [] };
 
   try {
     const {
@@ -42,18 +42,18 @@ export async function loadAdministrationWorkspaceDataSafely({
       getWorkspaceCustomRoleOptions,
       getWorkspaceMemberRoleOptions,
     } = await import("@/features/workspace/service");
-    const workspaces = await getAdministrationWorkspaceOptions({
+    const [workspace] = await getAdministrationWorkspaceOptions({
       actorRole,
       actorUserId,
     });
-    const [customRoles, members] = workspaces[0]
+    const [customRoles, members] = workspace
       ? await Promise.all([
-          getWorkspaceCustomRoleOptions(workspaces[0].id),
-          getWorkspaceMemberRoleOptions(workspaces[0].id),
+          getWorkspaceCustomRoleOptions(workspace.id),
+          getWorkspaceMemberRoleOptions(workspace.id),
         ])
       : [[], []];
-    return { workspaces, customRoles, members };
+    return { workspace: workspace ?? null, customRoles, members };
   } catch {
-    return { workspaces: [], customRoles: [], members: [] };
+    return { workspace: null, customRoles: [], members: [] };
   }
 }

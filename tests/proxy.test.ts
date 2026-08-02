@@ -16,12 +16,12 @@ function getAuthenticatedRoutes(dir: string): string[] {
 }
 
 describe("proxy route cohérence", () => {
-  it("chaque route sous app/(authenticated)/ est dans config.matcher", () => {
-    const routes = getAuthenticatedRoutes("src/app/(authenticated)");
+  it("chaque route sous app/(backoffice)/ est dans config.matcher", () => {
+    const routes = getAuthenticatedRoutes("src/app/(backoffice)");
     for (const route of routes) {
       expect(
         matcherRoutes,
-        `Route "${route}" présente dans app/(authenticated)/ mais absente du config.matcher dans proxy.ts`,
+        `Route "${route}" présente dans app/(backoffice)/ mais absente du config.matcher dans proxy.ts`,
       ).toContain(route);
     }
   });

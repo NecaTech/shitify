@@ -7,61 +7,49 @@ import { Settings2, Trash2, UserPlus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  createWorkspaceMemberAction,
-  deleteWorkspaceMemberAction,
-  updateWorkspaceMemberAction,
+  createWorkspaceAdminAction,
+  deleteWorkspaceAdminAction,
+  updateWorkspaceAdminAction,
 } from "@/features/workspace/actions";
 import type {
-  WorkspaceCustomRoleSummary,
   WorkspaceMemberRoleSummary,
   WorkspaceSummary,
 } from "@/features/workspace/types";
 import { ConfirmDialog } from "./ConfirmDialog";
 
-type MemberManagementProps = {
-  workspaces: WorkspaceSummary[];
-  members: WorkspaceMemberRoleSummary[];
-  customRoles: WorkspaceCustomRoleSummary[];
+type AdminManagementProps = {
+  workspace: WorkspaceSummary;
+  admins: WorkspaceMemberRoleSummary[];
 };
 
-type EditingMember = WorkspaceMemberRoleSummary | null;
+type EditingAdmin = WorkspaceMemberRoleSummary | null;
 
-export function MemberManagement({
-  workspaces,
-  members,
-  customRoles,
-}: MemberManagementProps) {
+export function AdminManagement({ workspace, admins }: AdminManagementProps) {
   const router = useRouter();
-  const [editingMember, setEditingMember] = useState<EditingMember>(null);
+  const [editingAdmin, setEditingAdmin] = useState<EditingAdmin>(null);
   const [isOpen, setIsOpen] = useState(false);
-  const [workspaceId, setWorkspaceId] = useState(workspaces[0]?.id ?? "");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [initialPassword, setInitialPassword] = useState("");
-  const [customRoleId, setCustomRoleId] = useState("");
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   function openCreateDialog() {
-    setEditingMember(null);
-    setWorkspaceId(workspaces[0]?.id ?? "");
+    setEditingAdmin(null);
     setName("");
     setEmail("");
     setInitialPassword("");
-    setCustomRoleId("");
     setIsConfirmingDelete(false);
     setError(null);
     setIsOpen(true);
   }
 
-  function openMemberDialog(member: WorkspaceMemberRoleSummary) {
-    setEditingMember(member);
-    setWorkspaceId(member.workspaceId);
-    setName(member.name);
-    setEmail(member.email);
+  function openAdminDialog(admin: WorkspaceMemberRoleSummary) {
+    setEditingAdmin(admin);
+    setName(admin.name);
+    setEmail(admin.email);
     setInitialPassword("");
-    setCustomRoleId(member.customRoleId ?? "");
     setIsConfirmingDelete(false);
     setError(null);
     setIsOpen(true);
@@ -79,19 +67,17 @@ export function MemberManagement({
     setError(null);
 
     startTransition(async () => {
-      const payload = {
-        workspaceId,
-        name,
-        email,
-        customRoleId,
-      };
-      const result = editingMember
-        ? await updateWorkspaceMemberAction({
-            ...payload,
-            membershipId: editingMember.membershipId,
+      const result = editingAdmin
+        ? await updateWorkspaceAdminAction({
+            membershipId: editingAdmin.membershipId,
+            workspaceId: workspace.id,
+            name,
+            email,
           })
-        : await createWorkspaceMemberAction({
-            ...payload,
+        : await createWorkspaceAdminAction({
+            workspaceId: workspace.id,
+            name,
+            email,
             initialPassword,
           });
 
@@ -106,12 +92,12 @@ export function MemberManagement({
   }
 
   function handleDelete() {
-    if (!editingMember) return;
+    if (!editingAdmin) return;
     setError(null);
 
     startTransition(async () => {
-      const result = await deleteWorkspaceMemberAction({
-        membershipId: editingMember.membershipId,
+      const result = await deleteWorkspaceAdminAction({
+        membershipId: editingAdmin.membershipId,
       });
       if (!result.success) {
         setError(result.error);
@@ -128,36 +114,30 @@ export function MemberManagement({
     <div className="grid gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-base font-semibold">Membres</h2>
+          <h2 className="text-base font-semibold">Admins workspace</h2>
           <p className="text-muted-foreground mt-1 text-sm">
-            Créez les membres du workspace et assignez-leur un rôle métier.
+            Créez et configurez les admins rattachés à la workspace du projet.
           </p>
         </div>
-        <Button
-          type="button"
-          onClick={openCreateDialog}
-          disabled={workspaces.length === 0}
-        >
+        <Button type="button" onClick={openCreateDialog}>
           <UserPlus aria-hidden="true" />
-          Créer un membre
+          Créer un admin
         </Button>
       </div>
 
-      {members.length > 0 ? (
+      {admins.length > 0 ? (
         <div className="grid gap-2">
-          {members.map((member) => (
+          {admins.map((admin) => (
             <button
-              key={member.membershipId}
+              key={admin.membershipId}
               type="button"
-              onClick={() => openMemberDialog(member)}
+              onClick={() => openAdminDialog(admin)}
               className="border-border hover:bg-muted focus-visible:border-ring focus-visible:ring-ring/50 flex min-h-12 items-center justify-between gap-3 rounded-lg border px-3 py-2 text-left text-sm transition-colors outline-none focus-visible:ring-3"
             >
               <span className="min-w-0">
-                <span className="block truncate font-medium">
-                  {member.name}
-                </span>
+                <span className="block truncate font-medium">{admin.name}</span>
                 <span className="text-muted-foreground mt-0.5 block text-xs">
-                  {member.email}
+                  {admin.email} · {workspace.name}
                 </span>
               </span>
               <Settings2
@@ -169,7 +149,7 @@ export function MemberManagement({
         </div>
       ) : (
         <p className="text-muted-foreground text-sm">
-          Aucun membre workspace n'est encore enregistré.
+          Aucun admin workspace n'est encore enregistré.
         </p>
       )}
 
@@ -178,12 +158,12 @@ export function MemberManagement({
           <div
             role="dialog"
             aria-modal="true"
-            aria-labelledby="member-dialog-title"
+            aria-labelledby="admin-dialog-title"
             className="bg-card text-card-foreground border-border w-full max-w-xl rounded-lg border shadow-lg"
           >
             <div className="border-border flex items-center justify-between gap-3 border-b px-5 py-4">
-              <h3 id="member-dialog-title" className="text-base font-semibold">
-                {editingMember ? "Configurer le membre" : "Créer un membre"}
+              <h3 id="admin-dialog-title" className="text-base font-semibold">
+                {editingAdmin ? "Configurer l'admin" : "Créer un admin"}
               </h3>
               <Button
                 type="button"
@@ -198,34 +178,13 @@ export function MemberManagement({
 
             <form onSubmit={handleSubmit} className="grid gap-4 p-5">
               <div className="grid gap-1">
-                <label
-                  htmlFor="member-workspace"
-                  className="text-sm font-medium"
-                >
-                  Workspace
-                </label>
-                <select
-                  id="member-workspace"
-                  required
-                  value={workspaceId}
-                  onChange={(event) => setWorkspaceId(event.target.value)}
-                  className="border-input bg-background focus-visible:border-ring focus-visible:ring-ring/50 h-8 w-full rounded-lg border px-2.5 py-1 text-sm outline-none focus-visible:ring-3"
-                >
-                  {workspaces.map((workspace) => (
-                    <option key={workspace.id} value={workspace.id}>
-                      {workspace.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="grid gap-1">
-                <label htmlFor="member-name" className="text-sm font-medium">
+                <label htmlFor="admin-name" className="text-sm font-medium">
                   Nom
                 </label>
                 <Input
-                  id="member-name"
+                  id="admin-name"
                   type="text"
+                  autoComplete="name"
                   required
                   value={name}
                   onChange={(event) => setName(event.target.value)}
@@ -233,29 +192,31 @@ export function MemberManagement({
               </div>
 
               <div className="grid gap-1">
-                <label htmlFor="member-email" className="text-sm font-medium">
+                <label htmlFor="admin-email" className="text-sm font-medium">
                   Email
                 </label>
                 <Input
-                  id="member-email"
+                  id="admin-email"
                   type="email"
+                  autoComplete="email"
                   required
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
                 />
               </div>
 
-              {!editingMember ? (
+              {!editingAdmin ? (
                 <div className="grid gap-1">
                   <label
-                    htmlFor="member-password"
+                    htmlFor="admin-password"
                     className="text-sm font-medium"
                   >
                     Mot de passe initial
                   </label>
                   <Input
-                    id="member-password"
+                    id="admin-password"
                     type="password"
+                    autoComplete="new-password"
                     required
                     minLength={12}
                     value={initialPassword}
@@ -264,31 +225,12 @@ export function MemberManagement({
                 </div>
               ) : null}
 
-              <div className="grid gap-1">
-                <label htmlFor="member-role" className="text-sm font-medium">
-                  Rôle métier
-                </label>
-                <select
-                  id="member-role"
-                  value={customRoleId}
-                  onChange={(event) => setCustomRoleId(event.target.value)}
-                  className="border-input bg-background focus-visible:border-ring focus-visible:ring-ring/50 h-8 w-full rounded-lg border px-2.5 py-1 text-sm outline-none focus-visible:ring-3"
-                >
-                  <option value="">Aucun rôle</option>
-                  {customRoles.map((role) => (
-                    <option key={role.id} value={role.id}>
-                      {role.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
               {error ? (
                 <p className="text-destructive text-sm">{error}</p>
               ) : null}
 
               <div className="flex flex-wrap justify-between gap-2">
-                {editingMember ? (
+                {editingAdmin ? (
                   <Button
                     type="button"
                     variant="destructive"
@@ -313,19 +255,19 @@ export function MemberManagement({
                   <Button type="submit" disabled={isPending}>
                     {isPending
                       ? "Enregistrement..."
-                      : editingMember
+                      : editingAdmin
                         ? "Enregistrer"
-                        : "Créer le membre"}
+                        : "Créer l'admin"}
                   </Button>
                 </div>
               </div>
             </form>
           </div>
 
-          {isConfirmingDelete && editingMember ? (
+          {isConfirmingDelete && editingAdmin ? (
             <ConfirmDialog
-              title="Supprimer ce membre ?"
-              description={`Le membre ${editingMember.name} sera retiré du workspace.`}
+              title="Supprimer cet admin ?"
+              description={`L'admin ${editingAdmin.name} sera retiré de ce workspace. Le compte utilisateur global ne sera pas supprimé.`}
               disabled={isPending}
               onCancel={() => setIsConfirmingDelete(false)}
               onConfirm={handleDelete}
