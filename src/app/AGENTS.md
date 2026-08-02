@@ -1,7 +1,7 @@
 # Scope
 
 App Router Next.js : routing, layouts, pages, loading/error boundaries, API route
-handlers. Hérite des règles globales du root `AGENT.md`.
+handlers. Hérite des règles globales du root `AGENTS.md`.
 
 # Must
 

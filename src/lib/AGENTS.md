@@ -1,7 +1,7 @@
 # Scope
 
 Core infrastructure (`src/lib/`) : env, auth infra, DB infra, logger, utils et
-validations partagées. Hérite des règles globales du root `AGENT.md`.
+validations partagées. Hérite des règles globales du root `AGENTS.md`.
 
 # Must
 
@@ -26,13 +26,13 @@ validations partagées. Hérite des règles globales du root `AGENT.md`.
 - `db/schema-name.ts` : `APP_ENV`, `CLIENT_SLUG`, `PROJECT_SLUG` pour les scripts Drizzle et le runtime serveur.
 - `logger.ts` : `NODE_ENV`.
 - `auth/index.ts` : `VERCEL_URL`, `VERCEL_PROJECT_PRODUCTION_URL`, `NODE_ENV`.
-- `drizzle.config.ts` et `scripts/*` : scripts Node purs, selon `scripts/AGENT.md`.
+- `drizzle.config.ts` et `scripts/*` : scripts Node purs, selon `scripts/AGENTS.md`.
 
 # Patterns
 
 - DB applicative : `@/lib/db` uniquement depuis `repository.ts` ou l'adapter Better Auth.
 - Config runtime : préférer une env validée ou une config projet typée.
-- Auth/proxy : maintenir le contrat anti-boucle documenté dans `src/lib/auth/AGENT.md` et `src/app/AGENT.md`.
+- Auth/proxy : maintenir le contrat anti-boucle documenté dans `src/lib/auth/AGENTS.md` et `src/app/AGENTS.md`.
 
 # Checks
 

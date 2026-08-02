@@ -3,7 +3,7 @@
 ## Purpose
 
 Tests des scripts Node purs et de leurs garde-fous opérationnels. Les scripts
-sources restent sous `scripts/` et leur contrat local est `scripts/AGENT.md`.
+sources restent sous `scripts/` et leur contrat local est `scripts/AGENTS.md`.
 
 ## Boundaries
 

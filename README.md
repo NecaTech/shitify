@@ -504,7 +504,7 @@ E2E_BASE_URL=https://staging.example.com pnpm test:e2e
 
 ## Règles clés
 
-- **Jamais de `process.env.X` direct** — importer depuis `lib/env.ts` (exceptions documentées dans `AGENT.md`)
+- **Jamais de `process.env.X` direct** — importer depuis `lib/env.ts` (exceptions documentées dans `AGENTS.md`)
 - **Jamais de saut de couche** — `page.tsx` peut appeler un service pour lire, mais jamais un repository ou `lib/db`
 - **Jamais de hardcoding de contournement** — pas d'URL, secret, id, rôle, email, valeur DB ou résultat de test codé en dur pour faire passer un build/test/déploiement
 - **Diagnostic avant correction** — reproduire/localiser l'erreur, identifier la couche responsable, puis corriger à cette couche
@@ -515,7 +515,7 @@ E2E_BASE_URL=https://staging.example.com pnpm test:e2e
 - **`server-only`** dans `lib/auth/index.ts`, `lib/db/index.ts`, `lib/logger.ts`, `repository.ts`, `service.ts`
 - **Nouvelle feature** — créer `features/<nom>/` en s'inspirant de `features/auth/`, puis ajouter `export * from "@/features/<nom>/schema"` dans `lib/db/schema.ts`
 
-Voir `AGENT.md` pour les règles et conventions complètes.
+Voir `AGENTS.md` pour les règles et conventions complètes.
 
 ## Roadmap et tickets
 

@@ -26,36 +26,36 @@ Continue from `docs/handoff/2026-06-30-1728-catalog-structure.md` and define the
 ## Actions Completed
 
 - Created `catalog/` with subfolders for reusable invariants, business grafts, compositions, and conventions.
-- Added `AGENT.md` contracts for each catalog node.
+- Added `AGENTS.md` contracts for each catalog node.
 - Added human-facing README files for catalog nodes.
 - Added `catalog/conventions/catalog-conventions.md` with minimum conventions for ids, capabilities, grafting, business grafts, and invariants.
 - Updated `CONTEXT.md` with stable glossary entries for the new vocabulary.
-- Updated `AGENT.md` to route catalog work and remove references to deleted ADR/ticket/report nodes.
-- Updated `docs/AGENT.md` and `docs/roadmap.md` so stale planning artifacts are no longer authoritative.
-- Updated `src/features/AGENT.md` to define the flow from active feature work to catalog promotion.
-- Updated `src/lib/auth/AGENT.md` to reference `CONTEXT.md` instead of a deleted ADR.
+- Updated `AGENTS.md` to route catalog work and remove references to deleted ADR/ticket/report nodes.
+- Updated `docs/AGENTS.md` and `docs/roadmap.md` so stale planning artifacts are no longer authoritative.
+- Updated `src/features/AGENTS.md` to define the flow from active feature work to catalog promotion.
+- Updated `src/lib/auth/AGENTS.md` to reference `CONTEXT.md` instead of a deleted ADR.
 
 ## Files And Artifacts
 
-- `catalog/AGENT.md`: global catalog mutation contract.
+- `catalog/AGENTS.md`: global catalog mutation contract.
 - `catalog/README.md`: human summary of catalog purpose and staging rule.
-- `catalog/invariants/AGENT.md`: local contract for reusable invariant entries.
-- `catalog/business/AGENT.md`: local contract for business graft entries.
-- `catalog/compositions/AGENT.md`: local contract for reusable assemblies.
-- `catalog/conventions/AGENT.md`: local contract for convention files.
+- `catalog/invariants/AGENTS.md`: local contract for reusable invariant entries.
+- `catalog/business/AGENTS.md`: local contract for business graft entries.
+- `catalog/compositions/AGENTS.md`: local contract for reusable assemblies.
+- `catalog/conventions/AGENTS.md`: local contract for convention files.
 - `catalog/conventions/catalog-conventions.md`: first convention document.
 - `CONTEXT.md`: now defines Catalog, Invariant, Business Graft, Composition, Active Implementation.
-- `AGENT.md`: now routes catalog work and warns against runtime staging/prod imports from catalog.
-- `src/features/AGENT.md`: now states active business logic is developed in `src/features/<feature>/` before catalog promotion.
+- `AGENTS.md`: now routes catalog work and warns against runtime staging/prod imports from catalog.
+- `src/features/AGENTS.md`: now states active business logic is developed in `src/features/<feature>/` before catalog promotion.
 - `docs/roadmap.md`: now records the current architectural direction instead of pointing to deleted tickets.
 
 ## Durable References
 
-- `catalog/AGENT.md`: read before any catalog mutation.
+- `catalog/AGENTS.md`: read before any catalog mutation.
 - `catalog/conventions/catalog-conventions.md`: current source for catalog naming and minimum contracts.
 - `CONTEXT.md`: stable vocabulary for future agents.
-- `AGENT.md`: root routing and global architecture rules.
-- `src/features/AGENT.md`: required when promoting active feature logic into a business graft.
+- `AGENTS.md`: root routing and global architecture rules.
+- `src/features/AGENTS.md`: required when promoting active feature logic into a business graft.
 - `docs/development-phases.md`: still defines dev/staging/prod for client projects.
 
 ## Commands And Results
@@ -99,7 +99,7 @@ Continue from `docs/handoff/2026-06-30-1728-catalog-structure.md` and define the
 
 ## Suggested Skills
 
-- `agents-dispatch`: use when changing `AGENT.md` routing or adding local catalog contracts.
+- `agents-dispatch`: use when changing `AGENTS.md` routing or adding local catalog contracts.
 - `improve-codebase-architecture`: use when deciding the manifest seam and how catalog entries graft into `src/`.
 - `grill-with-docs`: use if vocabulary or lifecycle decisions need to be challenged and recorded in `CONTEXT.md`.
 - `ticket-maker`: use only after the catalog convention is stable enough to create execution-ready local tickets.

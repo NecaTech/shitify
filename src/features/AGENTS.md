@@ -1,6 +1,6 @@
 # Scope
 
-Architecture des features métier. Hérite des règles globales du root `AGENT.md`.
+Architecture des features métier. Hérite des règles globales du root `AGENTS.md`.
 Ce fichier précise les contrats locaux `actions.ts`, `service.ts`, `repository.ts`,
 `schema.ts`, `types.ts` et `components/`.
 

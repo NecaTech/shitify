@@ -26,7 +26,7 @@ Agents must not:
 
 - ajouter des règles spécifiques à un client;
 - transformer ce dossier en linter généraliste concurrent de `readiness`;
-- bloquer un pattern utile sans règle documentée dans `tests/AGENT.md`.
+- bloquer un pattern utile sans règle documentée dans `tests/AGENTS.md`.
 
 ## Verification
 

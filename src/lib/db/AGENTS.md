@@ -2,7 +2,7 @@
 
 Infrastructure base de données : instance Drizzle/Neon, schéma agrégé,
 namespace PostgreSQL applicatif, schéma Better Auth généré puis transformé,
-et migrations. Hérite du root `AGENT.md` et de `src/lib/AGENT.md`.
+et migrations. Hérite du root `AGENTS.md` et de `src/lib/AGENTS.md`.
 
 # Must
 

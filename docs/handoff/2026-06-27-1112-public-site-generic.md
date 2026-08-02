@@ -45,17 +45,17 @@ Continue from `docs/handoff/2026-06-27-1112-public-site-generic.md` and run a `g
 - `docs/adr/0001-dashboard-modules-use-typed-features.md`: explains why generic CRUD is no longer the native dashboard foundation.
 - `docs/adr/0002-founder-is-platform-authority.md`: explains global Founder vs workspace roles.
 - `docs/tickets/00_roadmap.md`: quick ticket roadmap for dashboard/founder work.
-- `docs/AGENT.md`, `docs/adr/AGENT.md`, `docs/tickets/AGENT.md`, `docs/reports/AGENT.md`: documentation mutation contracts.
+- `docs/AGENTS.md`, `docs/adr/AGENTS.md`, `docs/tickets/AGENTS.md`, `docs/reports/AGENTS.md`: documentation mutation contracts.
 - `src/app/page.tsx`: current public home is still a post-clone setup guide and contains stale CRUD wording.
-- `src/app/AGENT.md`: App Router constraints for any public route work.
-- `src/components/layout/AGENT.md`: layout component rules for future public shell/header/footer.
-- `src/features/contact/AGENT.md`: relevant if the public site includes a contact form.
+- `src/app/AGENTS.md`: App Router constraints for any public route work.
+- `src/components/layout/AGENTS.md`: layout component rules for future public shell/header/footer.
+- `src/features/contact/AGENTS.md`: relevant if the public site includes a contact form.
 - `README.md`: still contains stale dashboard/configurable CRUD wording and is already earmarked for ticket 04 after dashboard implementation.
 
 ## Durable References
 
-- `AGENT.md`: root routing and global architecture rules. It now states `/dashboard` is Pilote and modules should use typed features.
-- `docs/AGENT.md`: source-of-truth and mutation rules for documentation nodes.
+- `AGENTS.md`: root routing and global architecture rules. It now states `/dashboard` is Pilote and modules should use typed features.
+- `docs/AGENTS.md`: source-of-truth and mutation rules for documentation nodes.
 - `docs/adr/0001-dashboard-modules-use-typed-features.md`: future public-site content management should not default to a dynamic CRUD shortcut without a new decision.
 - `docs/tickets/03_native_dashboard_shell_and_legacy_crud_removal.md`: dashboard implementation ticket; public site should not conflict with its dashboard assumptions.
 - `docs/tickets/04_documentation_and_readiness_alignment.md`: README and stale public setup copy may be updated there after dashboard tickets.
@@ -64,7 +64,7 @@ Continue from `docs/handoff/2026-06-27-1112-public-site-generic.md` and run a `g
 ## Commands And Results
 
 - `find docs -maxdepth 3 -type f | sort`: showed ADRs, tickets, roadmap, and documentation AGENT files.
-- `sed -n ... AGENT.md`, `docs/AGENT.md`, `src/app/AGENT.md`, `src/components/layout/AGENT.md`, `src/features/contact/AGENT.md`: read relevant routing and edit contracts.
+- `sed -n ... AGENTS.md`, `docs/AGENTS.md`, `src/app/AGENTS.md`, `src/components/layout/AGENTS.md`, `src/features/contact/AGENTS.md`: read relevant routing and edit contracts.
 - `sed -n ... src/app/page.tsx`: confirmed current public home is a setup guide and includes stale CRUD wording.
 - `git status --short`: worktree is dirty with many existing changes, including docs/tickets/ADR/AGENT work from this session and unrelated prior modifications.
 
@@ -90,7 +90,7 @@ Continue from `docs/handoff/2026-06-27-1112-public-site-generic.md` and run a `g
 ## Planned Next Actions
 
 1. In the future session, invoke `grill-with-docs`.
-2. Read `CONTEXT.md`, relevant ADRs, `AGENT.md`, `src/app/AGENT.md`, `src/components/layout/AGENT.md`, and current `src/app/page.tsx`.
+2. Read `CONTEXT.md`, relevant ADRs, `AGENTS.md`, `src/app/AGENTS.md`, `src/components/layout/AGENTS.md`, and current `src/app/page.tsx`.
 3. Clarify vocabulary: what “site public générique” means, what content categories exist, and which content is managed from dashboard vs static boilerplate.
 4. Decide public route structure and whether `/` remains home only or includes additional generic routes.
 5. Decide generic public shell: header, footer, navigation, CTAs, contact area, content placeholders, and empty/non-fictional states.

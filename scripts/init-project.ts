@@ -197,8 +197,8 @@ function upsertEnv(content: string, key: string, value: string) {
 }
 
 function updateAgentContext(answers: Answers) {
-  const path = "AGENT.md";
-  if (!existsSync(path)) return "skipped AGENT.md missing";
+  const path = "AGENTS.md";
+  if (!existsSync(path)) return "skipped AGENTS.md missing";
 
   const content = read(path);
   const replacement = `## Projet\n\n${answers.name} est un projet issu du boilerplate NecaTech.\n\nObjectif: ${answers.description}\n`;
@@ -207,7 +207,7 @@ function updateAgentContext(answers: Answers) {
     replacement,
   );
   write(path, updated);
-  return "updated root AGENT.md project context";
+  return "updated root AGENTS.md project context";
 }
 
 function updateRemote(answers: Answers) {
@@ -237,7 +237,7 @@ function formatTouchedFiles() {
       "--write",
       "package.json",
       "README.md",
-      "AGENT.md",
+      "AGENTS.md",
       ".env.example",
       "src/app/layout.tsx",
     ],

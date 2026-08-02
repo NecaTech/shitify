@@ -472,7 +472,7 @@ function checkMigrationBaseline() {
 
 function checkStaticReadiness() {
   checkFileExists("README.md");
-  checkFileExists("AGENT.md");
+  checkFileExists("AGENTS.md");
   checkFileExists("package.json");
   checkFileExists(".env.example");
   checkFileExists("src/lib/env.ts");

@@ -8,7 +8,7 @@ Scripts Node purs hors runtime Next.js :
 - `seed.ts` : seed founder officiel et workspace initial.
 - `assert-safe-db-env.ts` : garde-fou central des commandes DB/Vercel env.
 
-Hérite des règles globales du root `AGENT.md`. Ce fichier précise uniquement les
+Hérite des règles globales du root `AGENTS.md`. Ce fichier précise uniquement les
 contraintes locales des scripts.
 
 # Must
@@ -30,7 +30,7 @@ contraintes locales des scripts.
 - `init-project.ts` configure `APP_ENV=dev`, `CLIENT_SLUG` et `PROJECT_SLUG` afin que la baseline Drizzle soit générée par projet.
 - `init-project.ts` est l'opération de sortie du boilerplate source vers un
   projet client ; après clonage depuis le template, il doit spécialiser le
-  contexte local et remplacer le contrat `AGENT.md` boilerplate par un contrat
+  contexte local et remplacer le contrat `AGENTS.md` boilerplate par un contrat
   projet client.
 - `vercel-bootstrap.ts` doit respecter le mapping Vercel `development -> dev`, `preview -> staging`, `production -> prod`.
 - `vercel:pull-env` production ne doit jamais écraser `.env.local` sans confirmation explicite.

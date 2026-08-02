@@ -17,4 +17,4 @@
 
 - Ne jamais hardcoder un compte de connexion client.
 - Ne jamais contourner Better Auth avec une session factice hors exception locale
-  boilerplate documentée dans `src/lib/auth/AGENT.md`.
+  boilerplate documentée dans `src/lib/auth/AGENTS.md`.
