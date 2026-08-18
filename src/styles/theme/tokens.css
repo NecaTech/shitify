@@ -34,6 +34,16 @@
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
   --font-heading: var(--font-heading);
+  --color-brand-neon-pink: var(--brand-neon-pink);
+  --color-brand-neon-mint: var(--brand-neon-mint);
+  --color-brand-neon-yellow: var(--brand-neon-yellow);
+  --color-brand-neon-blue: var(--brand-neon-blue);
+  --color-brand-neon-orange: var(--brand-neon-orange);
+  --color-brand-void: var(--brand-void);
+  --color-brand-void-foreground: var(--brand-void-foreground);
+  --shadow-neon-pink: 0 0 28px var(--brand-neon-pink);
+  --shadow-neon-mint: 0 0 28px var(--brand-neon-mint);
+  --shadow-neon-yellow: 0 0 28px var(--brand-neon-yellow);
   --radius: 0.625rem;
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);

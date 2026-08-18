@@ -22,6 +22,12 @@ Shitify est un projet issu du boilerplate NecaTech.
 
 Objectif: Application web construite avec le boilerplate NecaTech.
 
+## Sources de vérité
+
+- `CONTEXT.md` — vocabulaire stable du produit et de la plateforme.
+- `docs/product.md` — cadrage produit canonique de Shitify.
+- `docs/roadmap.md` — direction et découpage de travail courant.
+
 ## Agent skills
 
 ### Issue tracker

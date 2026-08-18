@@ -143,10 +143,47 @@ _Avoid_: MVP, product, production app
 
 **Pitch**:
 The deliberately disproportionate, sensationalist presentation generated for a
-creation ("The world's first AI-native mobility infrastructure for birds"),
-with manifestly satirical metrics (TAM, birds interviewed, revenue, imaginary
-valuation).
+creation ("The world's first AI-native mobility infrastructure for birds") — a
+deadpan, first-degree parodic startup landing that frames the prototype as its
+"live demo", with manifestly satirical metrics (TAM, birds interviewed, revenue,
+imaginary valuation). Its copy never uses vulgarities or the word "shit".
 _Avoid_: value proposition, business plan, real pitch
+
+**Vanity metric**:
+A manifestly satirical, unverifiable success figure presented in a Pitch (TAM,
+revenue, imaginary valuation, fictional validation counts), at least one of
+which is derived from the creation's specific idea.
+_Avoid_: real KPI, business metric
+
+**Endossement**:
+The community's single passive reaction to a creation: a binary, cumulative,
+deadpan signal of endorsement in the startup register — one backs a pitch as if
+it were a real announcement, never by naming its absurdity. Its exact label is
+fixed by the surface vocabulary.
+_Avoid_: like, upvote, "most absurd"
+
+**Remix**:
+A new independent creation forked from a shared creation to push its absurdity
+further — the community form of Surenchère. The source stays intact and is
+visibly credited ("une surenchère de X"), keeping the escalation chain legible.
+_Avoid_: edit of the original, fork without lineage
+
+**Surenchère**:
+The escalation of absurdity: pushing a creation's idea further toward greater
+uselessness or disproportion — more features, more sophistication, more inflated
+claims — proposed by Shitify or driven by the user, never applied automatically.
+On one's own creation it is iteration escalation; on another's it is a Remix
+(the community one-upmanship).
+_Avoid_: gamification, feature creep
+
+**Voix**:
+The two deliberate surface voices of Shitify, split by function: the
+**chrome** (French — the operator interface: navigation, forms, onboarding,
+progression, errors, empty states, confirmations) and the **performance**
+(English — the satirical startup theater: the pitch and any sensationalist
+self-presentation). `Burn my tokens` and `My Bullshits` remain English brand
+nouns inside the French chrome.
+_Avoid_: single-language UI, accidental bilingualism, self-mocking copy
 
 ## Flagged Ambiguities
 

@@ -3,6 +3,13 @@
 App Router Next.js : routing, layouts, pages, loading/error boundaries, API route
 handlers. Hérite des règles globales du root `AGENTS.md`.
 
+# Routes
+
+- `api/AGENTS.md` — route handlers HTTP et intégration Better Auth.
+- `(backoffice)/AGENTS.md` — groupe de routes privées du back-office.
+- `login/AGENTS.md` — route publique d'authentification.
+- `register/AGENTS.md` — route publique d'inscription.
+
 # Must
 
 - Garder `src/app` comme couche de composition et navigation.

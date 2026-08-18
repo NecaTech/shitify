@@ -31,6 +31,15 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+
+  /* Identité visuelle Shitify — parodie assumée (néon, arc-en-ciel). */
+  --brand-neon-pink: oklch(0.66 0.27 352);
+  --brand-neon-mint: oklch(0.86 0.19 165);
+  --brand-neon-yellow: oklch(0.92 0.19 108);
+  --brand-neon-blue: oklch(0.68 0.16 245);
+  --brand-neon-orange: oklch(0.76 0.17 68);
+  --brand-void: oklch(0.13 0.06 305);
+  --brand-void-foreground: oklch(0.97 0 0);
 }
 
 .dark {
