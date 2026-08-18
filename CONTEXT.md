@@ -109,6 +109,45 @@ The code currently integrated in `src/` and executed by the application. Active
 implementations are what remains in a client project after specialization.
 _Avoid_: Catalog entry, archive
 
+## Shitify Product Vocabulary
+
+Shitify est un projet client construit sur le boilerplate. Ce vocabulaire
+complète le vocabulaire plateforme ci-dessus pour le produit Shitify.
+
+**Shitify**:
+The product itself: a generator of absurd, deliberately useless, disposable
+prototypes with a seriously competent engine and a shareable, convincingly
+presented result — plus the sensationalist startup pitch that goes with it.
+_Avoid_: Lovable clone, Bolt clone, AI app builder, random joke generator
+
+**Creation**:
+The shareable artifact produced by Shitify from a bad idea: a convincing
+prototype plus its sensationalist pitch and satirical metrics. One creation =
+idea + prototype + pitch.
+_Avoid_: app, product, SaaS, deliverable
+
+**Burn my tokens**:
+The retained label for the generation action. Belongs to the product's satirical
+voice; the word "shit" is reserved for the brand and must not become a gimmick
+repeated in every label.
+_Avoid_: Generate, Build my app, Shit this
+
+**My Bullshits**:
+The retained label for the user's personal library of creations.
+_Avoid_: My projects, My apps, My dashboard
+
+**Prototype**:
+A deliberately disposable creation. Shitify never presents a prototype as an
+industrialized product or a viable business.
+_Avoid_: MVP, product, production app
+
+**Pitch**:
+The deliberately disproportionate, sensationalist presentation generated for a
+creation ("The world's first AI-native mobility infrastructure for birds"),
+with manifestly satirical metrics (TAM, birds interviewed, revenue, imaginary
+valuation).
+_Avoid_: value proposition, business plan, real pitch
+
 ## Flagged Ambiguities
 
 **Pilote vs. pilot project**:

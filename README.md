@@ -515,9 +515,11 @@ E2E_BASE_URL=https://staging.example.com pnpm test:e2e
 
 Voir `AGENTS.md` pour les règles et conventions complètes.
 
-## Roadmap et tickets
+## Cadrage produit et roadmap
 
-La roadmap d'évolution du boilerplate et ses tickets d'exécution vivent dans
+Le contrat produit canonique de Shitify (thèse, invariants, frontières,
+découpage) vit dans [`docs/product.md`](docs/product.md). La direction et le
+découpage de travail courant sont enregistrés dans
 [`docs/roadmap.md`](docs/roadmap.md).
 
 ## Checklist mise en production
