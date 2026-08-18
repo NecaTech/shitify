@@ -22,6 +22,20 @@ Shitify est un projet issu du boilerplate NecaTech.
 
 Objectif: Application web construite avec le boilerplate NecaTech.
 
+## Agent skills
+
+### Issue tracker
+
+Issues and PRDs live in GitHub Issues, via the `gh` CLI. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Five canonical triage roles mapped to the default labels. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: one root `CONTEXT.md` plus `docs/adr/`. See `docs/agents/domain.md`.
+
 ## Routes
 
 | Area                                           | Read next                                                       |
