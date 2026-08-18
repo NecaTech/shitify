@@ -1,20 +1,26 @@
-# NecaTech Boilerplate
+# Shitify
 
 ## Start here
 
-This repository is the reusable NecaTech boilerplate. Before changing a path, read this
-file and every nearer `AGENTS.md` from the repository root to that path. The nearest
-contract refines its ancestors; it does not replace repository-wide invariants.
+Shitify est un projet client issu du boilerplate NecaTech. Avant de modifier un
+chemin, lire ce fichier et chaque `AGENTS.md` plus proche depuis la racine du
+dépôt jusqu'à ce chemin. Le contrat le plus proche affine ses ancêtres ; il ne
+remplace pas les invariants de l'ensemble du dépôt.
 
-The remote determines the work mode:
+Le remote détermine le mode de travail :
 
-- a remote containing `necatech-boilerplate` means `boilerplate-source`;
-- another project remote means `client-project`;
-- no remote means the project context is incomplete.
+- un remote contenant `necatech-boilerplate` signifie `boilerplate-source` ;
+- tout autre remote projet signifie `client-project` (cas de Shitify) ;
+- aucun remote signifie que le contexte projet est incomplet.
 
-In `boilerplate-source`, mature reusable foundations locally with `APP_ENV=dev`. Staging
-and production belong to initialized client projects. Do not run `pnpm init-project` to
-work on the source boilerplate itself.
+En mode `client-project`, le projet se développe avec `APP_ENV=dev` ; les phases
+staging et production appartiennent à ce projet client.
+
+## Projet
+
+Shitify est un projet issu du boilerplate NecaTech.
+
+Objectif: Application web construite avec le boilerplate NecaTech.
 
 ## Routes
 

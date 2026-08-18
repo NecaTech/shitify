@@ -1,8 +1,6 @@
-# NecaTech Boilerplate
+# Shitify
 
-Production-ready Next.js fullstack starter et atelier de développement de
-logiques métier réutilisables — prêt à cloner, composer et spécialiser un
-projet client.
+Application web construite avec le boilerplate NecaTech.
 
 ## Stack
 
